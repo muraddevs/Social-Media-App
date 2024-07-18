@@ -21,10 +21,10 @@ public class PostImage {
 
     @NotNull
     @Lob
-    @Column(name = "data")
+    @Column(name = "data", length = 2000)
     private byte[] data;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 

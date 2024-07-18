@@ -3,6 +3,7 @@ package CIC.social_media_api.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,12 +23,12 @@ public class Post {
     private LocalDateTime createdAt;
 
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostImage> postImages;
+    private List<PostImage> postImages = new ArrayList<>(); // Initialize the list
 
     @Column(name = "like_count")
     private int likeCount;
@@ -90,5 +91,17 @@ public class Post {
 
     public void setLikeCount(int likeCount) {
         this.likeCount = likeCount;
+    }
+
+    // Add image to the post
+    public void addPostImage(PostImage postImage) {
+        postImages.add(postImage);
+        postImage.setPost(this);
+    }
+
+    // Remove image from the post
+    public void removePostImage(PostImage postImage) {
+        postImages.remove(postImage);
+        postImage.setPost(null);
     }
 }

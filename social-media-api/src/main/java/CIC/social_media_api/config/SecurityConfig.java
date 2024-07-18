@@ -36,9 +36,20 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF here
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/v2/api-docs", "/v3/api-docs/**",
-                                "/swagger-resources", "/swagger-resources/**", "/configuration/ui",
-                                "/configuration/security", "/swagger-ui/**", "/webjars/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/v2/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/swagger-ui/**",
+                                "/webjars/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+                        .requestMatchers("/api/posts/**").hasAnyRole("USER", "ADMIN") // Allow POST requests to /api/posts/**
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
