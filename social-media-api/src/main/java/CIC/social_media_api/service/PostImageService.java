@@ -58,7 +58,7 @@ public class PostImageService {
         PostImage postImage = new PostImage();
         postImage.setName(sanitizeFileName(fileName));
         postImage.setType(fileType);
-        postImage.setData(base64Data.getBytes()); // Store Base64-encoded data as String
+        postImage.setData(base64Data); // Store Base64-encoded data as String
         postImage.setPost(post);
 
         // Save and return the PostImage

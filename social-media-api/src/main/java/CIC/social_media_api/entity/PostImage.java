@@ -22,10 +22,10 @@ public class PostImage {
 
     @NotNull
     @Lob
-    @Column(name = "data", length = 2000)
-    private byte[] data;
+    @Column(name = "data")
+    private String data; // Store Base64-encoded data as String
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id", nullable = false)
     @JsonBackReference
     private Post post;
@@ -34,7 +34,7 @@ public class PostImage {
     public PostImage() {}
 
     // Parameterized constructor
-    public PostImage(String name, String type, byte[] data, Post post) {
+    public PostImage(String name, String type, String data, Post post) {
         this.name = name;
         this.type = type;
         this.data = data;
@@ -66,11 +66,11 @@ public class PostImage {
         this.type = type;
     }
 
-    public byte[] getData() {
+    public String getData() {
         return data;
     }
 
-    public void setData(byte[] data) {
+    public void setData(String data) {
         this.data = data;
     }
 

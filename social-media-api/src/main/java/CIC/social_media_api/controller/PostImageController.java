@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +55,7 @@ public class PostImageController {
                             postImage.getId(),
                             postImage.getName(),
                             postImage.getType(),
-                            postImage.getData() // Base64-encoded string
+                            postImage.getData() // Base64-encoded data directly
                     ))
                     .collect(Collectors.toList());
 
@@ -108,15 +108,14 @@ public class PostImageController {
         private String type;
         private String data; // Base64-encoded image data
 
-        public ImageResponse(Long id, String name, String type, byte[] data) {
+        public ImageResponse(Long id, String name, String type, String data) {
             this.id = id;
             this.name = name;
             this.type = type;
-            this.data = Arrays.toString(data);
+            this.data = data;
         }
 
         // Getters and setters
-
         public Long getId() {
             return id;
         }

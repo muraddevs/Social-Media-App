@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,6 +66,8 @@ public class PostController {
                 post.setDescription(description);
             }
 
+            post.setCreatedAt(LocalDateTime.now()); // Set createdAt explicitly
+
             if (file != null && !file.isEmpty()) {
                 PostImage postImage = postImageService.storeImage(file, post);
                 post.getPostImages().add(postImage);
@@ -76,6 +79,8 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating post: " + e.getMessage());
         }
     }
+
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
