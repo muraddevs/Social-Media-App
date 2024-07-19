@@ -15,22 +15,27 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
+    // Create a new post
     public Post createPost(Post post) {
         return postRepository.save(post);
     }
 
+    // Find a post by ID
     public Post findPostById(Long id) {
         return postRepository.findById(id).orElse(null);
     }
 
+    // Find all posts with associated user details
     public List<Post> findAllPosts() {
         return postRepository.findAll();
     }
 
+    // Delete a post by ID
     public void deletePost(Long id) {
         postRepository.deleteById(id);
     }
 
+    // Update an existing post
     public Post updatePost(Post post) {
         return postRepository.save(post);
     }

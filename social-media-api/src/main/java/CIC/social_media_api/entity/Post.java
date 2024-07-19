@@ -1,5 +1,7 @@
 package CIC.social_media_api.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -25,10 +27,12 @@ public class Post {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostImage> postImages = new ArrayList<>(); // Initialize the list
+    @JsonManagedReference
+    private List<PostImage> postImages = new ArrayList<>();
 
     @Column(name = "like_count")
     private int likeCount;
@@ -103,5 +107,9 @@ public class Post {
     public void removePostImage(PostImage postImage) {
         postImages.remove(postImage);
         postImage.setPost(null);
+    }
+
+    public String getUserName() {
+        return user != null ? user.getUserName() : "Unknown User";
     }
 }

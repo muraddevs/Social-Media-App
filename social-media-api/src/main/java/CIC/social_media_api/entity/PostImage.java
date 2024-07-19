@@ -1,5 +1,6 @@
 package CIC.social_media_api.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
@@ -26,6 +27,7 @@ public class PostImage {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "post_id", nullable = false)
+    @JsonBackReference
     private Post post;
 
     // Default constructor

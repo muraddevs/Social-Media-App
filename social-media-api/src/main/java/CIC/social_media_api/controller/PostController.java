@@ -29,7 +29,7 @@ public class PostController {
     private PostImageService postImageService;
 
     @Autowired
-    private UserService userService; // Inject the UserService or UserRepository here
+    private UserService userService;
 
     @GetMapping
     public ResponseEntity<List<Post>> getAllPosts() {
