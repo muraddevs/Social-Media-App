@@ -49,7 +49,8 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/api/posts/**").hasAnyRole("USER", "ADMIN") // Allow POST requests to /api/posts/**
+                        .requestMatchers("/api/posts/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/likes/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
