@@ -51,18 +51,16 @@ public class PostController {
                                         Authentication authentication) {
         try {
             String username = authentication.getName(); // Get authenticated user's username
-
             Optional<User> optionalUser = userService.findByUserName(username);
-            if (!optionalUser.isPresent()) {
+            if (optionalUser.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User not found: " + username);
             }
 
             User user = optionalUser.get();
-
             Post post = new Post();
             post.setUser(user); // Set the User entity as the post's user
 
-            if (description != null && !description.isEmpty()) {
+            if (description != null && !description.trim().isEmpty()) {
                 post.setDescription(description);
             }
 
@@ -80,11 +78,12 @@ public class PostController {
         }
     }
 
-
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+        if (postService.findPostById(id) == null) {
+            return ResponseEntity.notFound().build();
+        }
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
     }

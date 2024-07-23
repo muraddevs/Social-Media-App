@@ -34,9 +34,46 @@ public class LikeService {
         return likeRepository.findByUserIdAndPostId(userId, postId);
     }
 
-    public void deleteLike(Like like) {
-        // Find the like to be deleted
-        Optional<Like> existingLike = getLikeByUserAndPost(like.getUser().getId(), like.getPost().getId());
-        existingLike.ifPresent(likeRepository::delete);
+    public boolean hasLikedPost(Long userId, Long postId) {
+        return getLikeByUserAndPost(userId, postId)
+                .map(like -> !like.isDislike())
+                .orElse(false);
+    }
+
+    public boolean hasDislikedPost(Long userId, Long postId) {
+        return getLikeByUserAndPost(userId, postId)
+                .map(Like::isDislike)
+                .orElse(false);
+    }
+
+    public void removeLike(Long userId, Long postId) {
+        getLikeByUserAndPost(userId, postId)
+                .ifPresent(like -> {
+                    if (!like.isDislike()) {
+                        likeRepository.delete(like);
+                    }
+                });
+    }
+
+    public void removeDislike(Long userId, Long postId) {
+        getLikeByUserAndPost(userId, postId)
+                .ifPresent(like -> {
+                    if (like.isDislike()) {
+                        likeRepository.delete(like);
+                    }
+                });
+    }
+
+    public void createDislike(Like dislike) {
+        dislike.setDislike(true);
+        createLike(dislike);
+    }
+
+    public int getLikeCount(Long postId) {
+        return likeRepository.countByPostIdAndDislikeFalse(postId);
+    }
+
+    public int getDislikeCount(Long postId) {
+        return likeRepository.countByPostIdAndDislikeTrue(postId);
     }
 }

@@ -1,6 +1,7 @@
 package CIC.social_media_api.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -34,8 +35,9 @@ public class Post {
     @JsonManagedReference
     private List<PostImage> postImages = new ArrayList<>();
 
-    @Column(name = "like_count")
-    private int likeCount;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Like> likes = new ArrayList<>();
 
     // Default constructor
     public Post() {}
@@ -45,7 +47,6 @@ public class Post {
         this.description = description;
         this.createdAt = LocalDateTime.now();
         this.user = user;
-        this.likeCount = 0;
     }
 
     // Getters and Setters
@@ -89,12 +90,12 @@ public class Post {
         this.postImages = postImages;
     }
 
-    public int getLikeCount() {
-        return likeCount;
+    public List<Like> getLikes() {
+        return likes;
     }
 
-    public void setLikeCount(int likeCount) {
-        this.likeCount = likeCount;
+    public void setLikes(List<Like> likes) {
+        this.likes = likes;
     }
 
     // Add image to the post
