@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,10 +40,12 @@ public class CommentController {
         User user = new User();
         user.setId(userId);
         comment.setUser(user);
+        comment.setCreatedDate(LocalDateTime.now()); // Set the current date and time
 
         Comment createdComment = commentService.createComment(comment);
         return ResponseEntity.ok(createdComment);
     }
+
 
     @GetMapping("/post/{postId}")
     public List<Comment> getCommentsByPostId(@PathVariable Long postId) {
