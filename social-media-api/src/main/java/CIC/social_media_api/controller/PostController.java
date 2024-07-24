@@ -79,11 +79,29 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        if (postService.findPostById(id) == null) {
+    @PreAuthorize("hasRole('USER')") // Users with 'USER' role can delete their own posts
+    public ResponseEntity<Void> deletePost(@PathVariable Long id, Authentication authentication) {
+        Optional<Post> optionalPost = Optional.ofNullable(postService.findPostById(id));
+
+        if (optionalPost.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        Post post = optionalPost.get();
+        String username = authentication.getName();
+        Optional<User> optionalUser = userService.findByUserName(username);
+
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+        User user = optionalUser.get();
+
+        // Check if the authenticated user is the owner of the post
+        if (!post.getUser().equals(user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Forbidden if the user is not the owner
+        }
+
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
     }
