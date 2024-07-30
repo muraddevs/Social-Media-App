@@ -1,8 +1,9 @@
 package CIC.social_media_api.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import java.util.Objects;
 
 @Entity
@@ -16,11 +17,10 @@ public class Like {
     @Column(name = "id")
     private Long id;
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
-    private User user;
+    private User user;  // Updated from UserDTO to User
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,7 +35,7 @@ public class Like {
     public Like() {}
 
     // Parameterized constructor
-    public Like(@NotNull User user, @NotNull Post post, boolean dislike) {
+    public Like(User user, @NotNull Post post, boolean dislike) {
         this.user = user;
         this.post = post;
         this.dislike = dislike;

@@ -1,5 +1,6 @@
 package CIC.social_media_api.service;
 
+import CIC.social_media_api.dto.UserDTO;
 import CIC.social_media_api.entity.User;
 import CIC.social_media_api.entity.UserImage;
 import CIC.social_media_api.repository.UserImageRepository;
@@ -20,7 +21,14 @@ public class UserImageService {
     private UserService userService;
 
     public UserImage createUserImage(Long userId, MultipartFile file) throws IOException {
-        Optional<User> optionalUser = userService.getUserById(userId);
+        // Fetch the User entity from UserService
+        Optional<User> optionalUser = userService.getUserById(userId)
+                .map(dto -> {
+                    User user = new User();
+                    user.setId(dto.getId());
+                    // Set other fields if necessary
+                    return user;
+                });
 
         if (optionalUser.isPresent()) {
             String fileName = file.getOriginalFilename();
@@ -40,7 +48,7 @@ public class UserImageService {
     }
 
     public Optional<UserImage> getUserImageByUserId(Long userId) {
-        return userImageRepository.findByUserId(userId); // Assuming findByUser_Id is correctly implemented in UserImageRepository
+        return userImageRepository.findByUserId(userId); // Assuming findByUserId is correctly implemented in UserImageRepository
     }
 
     public void deleteUserImage(Long id) {

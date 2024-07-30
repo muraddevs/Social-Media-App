@@ -6,10 +6,11 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "user_images")
 public class UserImage {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private  int id;
+    private Long id;  // Changed from int to Long
 
     @Column(name = "name")
     private String name;
@@ -17,27 +18,31 @@ public class UserImage {
     @Column(name = "type")
     private String type;
 
-    @Column(name = "data",length = 1000)
+    @Column(name = "data", length = 1000)
     private byte[] data;
 
     @NotNull
     @ManyToOne
     @JoinColumn(name = "user_id")
-    User user;
+    private User user;  // Changed from UserDTO to User
 
-    public byte[] getData() {
-        return data;
-    }
+    // Default constructor
+    public UserImage() {}
 
-    public void setData(byte[] data) {
+    // Parameterized constructor
+    public UserImage(String name, String type, byte[] data, User user) {
+        this.name = name;
+        this.type = type;
         this.data = data;
+        this.user = user;
     }
 
-    public int getId() {
+    // Getters and Setters
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -57,11 +62,19 @@ public class UserImage {
         this.type = type;
     }
 
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
+
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(User user) {  // Updated from UserDTO to User
         this.user = user;
     }
 }

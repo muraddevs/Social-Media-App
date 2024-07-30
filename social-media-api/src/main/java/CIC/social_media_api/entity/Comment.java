@@ -1,35 +1,51 @@
 package CIC.social_media_api.entity;
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
     @NotNull
     @Column(name = "description")
     private String description;
 
-    @NotNull
-    @Column(name = "post_id")
-    private Long postId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    @JsonBackReference
+    private Post post;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @Column(name = "created_date")
-    private LocalDateTime createdDate; // Add this field
+    private LocalDateTime createdDate;
+
+    // Default constructor
+    public Comment() {}
+
+    // Parameterized constructor
+    public Comment(String description, Post post, User user) {
+        this.description = description;
+        this.post = post;
+        this.user = user;
+        this.createdDate = LocalDateTime.now();
+    }
 
     // Getters and setters
-
     public Long getId() {
         return id;
     }
@@ -46,12 +62,12 @@ public class Comment {
         this.description = description;
     }
 
-    public Long getPostId() {
-        return postId;
+    public Post getPost() {
+        return post;
     }
 
-    public void setPostId(Long postId) {
-        this.postId = postId;
+    public void setPost(Post post) {
+        this.post = post;
     }
 
     public User getUser() {

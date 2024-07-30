@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {
-    // Add method to find images by postId
     List<PostImage> findByPostId(Long postId);
 }

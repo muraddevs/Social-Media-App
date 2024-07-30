@@ -21,9 +21,8 @@ public class PostImage {
     private String type;
 
     @NotNull
-    @Lob
     @Column(name = "data")
-    private String data; // Store Base64-encoded data as String
+    private String data; // Store image URL or path instead of Base64
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id", nullable = false)

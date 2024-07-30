@@ -1,6 +1,6 @@
 package CIC.social_media_api.controller;
 
-import CIC.social_media_api.entity.User;
+import CIC.social_media_api.dto.UserDTO;
 import CIC.social_media_api.entity.UserImage;
 import CIC.social_media_api.service.UserImageService;
 import CIC.social_media_api.service.UserService;
@@ -29,13 +29,13 @@ public class UserImageController {
     @PostMapping("/{userId}/upload")
     public ResponseEntity<UserImage> uploadImage(@PathVariable Long userId,
                                                  @RequestParam("file") MultipartFile file) throws IOException {
-        Optional<User> optionalUser = userService.getUserById(userId);
+        Optional<UserDTO> optionalUser = userService.getUserById(userId);
         if (!optionalUser.isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
-        User user = optionalUser.get();
-        UserImage userImage = userImageService.createUserImage(user.getId(), file);
+        UserDTO userDTO = optionalUser.get();
+        UserImage userImage = userImageService.createUserImage(userDTO.getId(), file);
         return ResponseEntity.ok(userImage);
     }
 

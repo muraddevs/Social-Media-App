@@ -1,8 +1,6 @@
 package CIC.social_media_api.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -11,6 +9,11 @@ import java.util.List;
 
 @Entity
 @Table(name = "posts")
+@JsonIgnoreProperties(value = {"user"}, allowSetters = true)
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 public class Post {
 
     @Id
@@ -18,20 +21,21 @@ public class Post {
     private Long id;
 
     @NotNull
-    @Column(name = "description")
+    @Column(name = "description", nullable = false)
     private String description;
 
     @NotNull
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
     private User user;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<PostImage> postImages = new ArrayList<>();
 
@@ -39,8 +43,14 @@ public class Post {
     @JsonIgnore
     private List<Like> likes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Comment> comments = new ArrayList<>();
+
     // Default constructor
-    public Post() {}
+    public Post() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     // Parameterized constructor
     public Post(String description, User user) {
@@ -98,16 +108,32 @@ public class Post {
         this.likes = likes;
     }
 
-    // Add image to the post
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
+
     public void addPostImage(PostImage postImage) {
         postImages.add(postImage);
         postImage.setPost(this);
     }
 
-    // Remove image from the post
     public void removePostImage(PostImage postImage) {
         postImages.remove(postImage);
         postImage.setPost(null);
+    }
+
+    public void addComment(Comment comment) {
+        comments.add(comment);
+        comment.setPost(this);
+    }
+
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        comment.setPost(null);
     }
 
     public String getUserName() {

@@ -1,6 +1,6 @@
 package CIC.social_media_api.controller;
 
-import CIC.social_media_api.entity.User;
+import CIC.social_media_api.dto.UserDTO;
 import CIC.social_media_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,37 +17,36 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.getUserById(id);
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        Optional<UserDTO> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/create")
-    public ResponseEntity<User> createUser(@RequestBody AuthController.RegisterRequest request) {
-        User createdUser = userService.createUser(
-                request.getUsername(),
-                request.getPassword(),
-                request.getEmail(),
-                request.getName(),
-                request.getLastName(),
-                request.getRole()
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+        // Extract user details from UserDTO and pass them to the service
+        UserDTO createdUser = userService.createUser(
+                userDTO.getUserName(),
+                userDTO.getPassword(),
+                userDTO.getEmail(),
+                userDTO.getName(),
+                userDTO.getLastName(),
+                userDTO.getRole()
         );
         return ResponseEntity.ok(createdUser);
     }
 
-
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
-        Optional<User> updatedUser = Optional.ofNullable(userService.updateUser(id, userDetails));
-        return updatedUser.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDetails) {
+        UserDTO updatedUser = userService.updateUser(id, userDetails);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/{id}")

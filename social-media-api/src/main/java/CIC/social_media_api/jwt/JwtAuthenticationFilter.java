@@ -14,9 +14,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -34,6 +38,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null) {
             try {
+                if (jwtTokenProvider.isTokenExpired(token)) {
+                    logger.warn("JWT token is expired");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token is expired");
+                    return;
+                }
+
                 String username = jwtTokenProvider.getUsernameFromToken(token);
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
@@ -42,8 +52,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    logger.info("Authenticated user: {}", username);
                 } else {
-                    logger.warn("JWT token is invalid or expired");
+                    logger.warn("JWT token is invalid or user details could not be found");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token is invalid");
+                    return;
                 }
             } catch (Exception e) {
                 logger.error("Cannot set user authentication", e);

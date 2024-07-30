@@ -1,16 +1,13 @@
 package CIC.social_media_api.controller;
 
-import CIC.social_media_api.entity.Comment;
-import CIC.social_media_api.entity.User;
+import CIC.social_media_api.dto.CommentDTO;
 import CIC.social_media_api.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -20,36 +17,22 @@ public class CommentController {
     private CommentService commentService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Comment> getCommentById(@PathVariable Long id) {
-        Comment comment = commentService.getCommentById(id);
-        if (comment == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(comment);
+    public ResponseEntity<CommentDTO> getCommentById(@PathVariable Long id) {
+        return commentService.getCommentById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Comment> createComment(@RequestBody Map<String, Object> payload) {
-        String description = (String) payload.get("description");
-        Long postId = ((Number) payload.get("postId")).longValue();
-        Long userId = ((Number) payload.get("userId")).longValue();
-
-        Comment comment = new Comment();
-        comment.setDescription(description);
-        comment.setPostId(postId);
-        User user = new User();
-        user.setId(userId);
-        comment.setUser(user);
-        comment.setCreatedDate(LocalDateTime.now()); // Set the current date and time
-
-        Comment createdComment = commentService.createComment(comment);
-        return ResponseEntity.ok(createdComment);
+    public ResponseEntity<CommentDTO> createComment(@RequestBody CommentDTO commentDTO) {
+        CommentDTO createdComment = commentService.createComment(commentDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
     }
 
-
     @GetMapping("/post/{postId}")
-    public List<Comment> getCommentsByPostId(@PathVariable Long postId) {
-        return commentService.getCommentsByPostId(postId);
+    public ResponseEntity<List<CommentDTO>> getCommentsByPostId(@PathVariable Long postId) {
+        List<CommentDTO> comments = commentService.getCommentsByPostId(postId);
+        return ResponseEntity.ok(comments);
     }
 
     @DeleteMapping("/{id}")
