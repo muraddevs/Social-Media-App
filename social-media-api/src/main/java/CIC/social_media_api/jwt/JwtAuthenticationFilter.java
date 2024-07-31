@@ -14,13 +14,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -52,9 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                    logger.info("Authenticated user: {}", username);
                 } else {
-                    logger.warn("JWT token is invalid or user details could not be found");
+                    logger.warn("JWT token is invalid or expired");
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token is invalid");
                     return;
                 }

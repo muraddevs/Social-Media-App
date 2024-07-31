@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
@@ -25,7 +24,7 @@ public class JwtTokenProvider {
     private Long expirationMs;
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Base64.getDecoder().decode(SECRET_KEY);
+        byte[] keyBytes = SECRET_KEY.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -47,15 +46,11 @@ public class JwtTokenProvider {
     }
 
     private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid token", e);
-        }
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public Boolean isTokenExpired(String token) {

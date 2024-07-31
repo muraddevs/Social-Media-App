@@ -1,68 +1,134 @@
 package CIC.social_media_api.controller;
 
-import CIC.social_media_api.dto.PostDTO;
-import CIC.social_media_api.dto.CommentDTO;
-import CIC.social_media_api.dto.PostImageDTO;
-import CIC.social_media_api.dto.LikeDTO;
+import CIC.social_media_api.entity.Post;
+import CIC.social_media_api.entity.PostImage;
+import CIC.social_media_api.entity.User;
 import CIC.social_media_api.service.PostService;
+import CIC.social_media_api.service.PostImageService;
+import CIC.social_media_api.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
 
+    private static final Logger logger = LoggerFactory.getLogger(PostController.class);
+
     @Autowired
     private PostService postService;
 
-    @PostMapping
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO) {
-        PostDTO createdPost = postService.createPost(postDTO);
-        return ResponseEntity.ok(createdPost);
+    @Autowired
+    private PostImageService postImageService;
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping
+    public ResponseEntity<List<Post>> getAllPosts() {
+        try {
+            List<Post> posts = postService.findAllPosts();
+            return ResponseEntity.ok(posts);
+        } catch (Exception e) {
+            logger.error("Error retrieving all posts: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPostById(@PathVariable Long id) {
-        return postService.findPostById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Post> getPostById(@PathVariable Long id) {
+        try {
+            Post post = postService.findPostById(id);
+            return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            logger.error("Error retrieving post with ID {}: ", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @GetMapping
-    public ResponseEntity<List<PostDTO>> getAllPosts() {
-        List<PostDTO> posts = postService.findAllPosts();
-        return ResponseEntity.ok(posts);
+    @PostMapping
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Post> createPost(@RequestParam(value = "description", required = false) String description,
+                                           @RequestParam(value = "file", required = false) MultipartFile file,
+                                           Authentication authentication) {
+        try {
+            Optional<User> optionalUser = userService.findByUserName(authentication.getName());
+
+            if (!optionalUser.isPresent()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            User user = optionalUser.get();
+            Post post = new Post();
+            post.setUser(user);
+            post.setDescription(description);
+            post.setCreatedAt(LocalDateTime.now());
+
+            if (file != null && !file.isEmpty()) {
+                try {
+                    PostImage postImage = postImageService.storeImage(file, post.getId());
+                    post.getPostImages().add(postImage);
+                } catch (IOException e) {
+                    logger.error("Error storing image for post ID {}: ", post.getId(), e);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                } catch (IllegalArgumentException e) {
+                    logger.error("Invalid argument error while storing image for post ID {}: ", post.getId(), e);
+                    return ResponseEntity.badRequest().build();
+                }
+            }
+
+            Post createdPost = postService.createPost(post);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
+
+        } catch (Exception e) {
+            logger.error("Error creating post: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        postService.deletePost(id);
-        return ResponseEntity.noContent().build();
+        try {
+            postService.deletePost(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            logger.error("Error deleting post with ID {}: ", id, e);
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            logger.error("Error deleting post with ID {}: ", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PostDTO> updatePost(@PathVariable Long id, @RequestBody PostDTO postDTO) {
-        return ResponseEntity.ok(postService.updatePost(id, postDTO));
-    }
+    @PostMapping("/{postId}/images")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> uploadPostImage(@PathVariable Long postId, @RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
 
-    @GetMapping("/{postId}/comments")
-    public ResponseEntity<List<CommentDTO>> getCommentsByPostId(@PathVariable Long postId) {
-        List<CommentDTO> comments = postService.getCommentsByPostId(postId);
-        return ResponseEntity.ok(comments);
-    }
-
-    @GetMapping("/{postId}/images")
-    public ResponseEntity<List<PostImageDTO>> getImagesByPostId(@PathVariable Long postId) {
-        List<PostImageDTO> images = postService.getImagesByPostId(postId);
-        return ResponseEntity.ok(images);
-    }
-
-    @GetMapping("/{postId}/likes")
-    public ResponseEntity<List<LikeDTO>> getLikesByPostId(@PathVariable Long postId) {
-        List<LikeDTO> likes = postService.getLikesByPostId(postId);
-        return ResponseEntity.ok(likes);
+            postImageService.storeImage(file, postId);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (IOException e) {
+            logger.error("Error uploading image for post with ID {}: ", postId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid argument error while uploading image for post ID {}: ", postId, e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

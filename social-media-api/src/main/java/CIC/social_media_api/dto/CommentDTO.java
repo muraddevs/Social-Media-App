@@ -3,25 +3,20 @@ package CIC.social_media_api.dto;
 import java.time.LocalDateTime;
 
 public class CommentDTO {
-
     private Long id;
     private String description;
-    private Long postId;
-    private Long userId;
+    private UserDTO user;
     private LocalDateTime createdDate;
-    private String userName; // Add userName for convenience
 
     // Default constructor
     public CommentDTO() {}
 
     // Parameterized constructor
-    public CommentDTO(Long id, String description, Long postId, Long userId, LocalDateTime createdDate, String userName) {
+    public CommentDTO(Long id, String description, UserDTO user, LocalDateTime createdDate) {
         this.id = id;
         this.description = description;
-        this.postId = postId;
-        this.userId = userId;
+        this.user = user;
         this.createdDate = createdDate;
-        this.userName = userName;
     }
 
     // Getters and Setters
@@ -41,20 +36,12 @@ public class CommentDTO {
         this.description = description;
     }
 
-    public Long getPostId() {
-        return postId;
+    public UserDTO getUser() {
+        return user;
     }
 
-    public void setPostId(Long postId) {
-        this.postId = postId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 
     public LocalDateTime getCreatedDate() {
@@ -63,13 +50,5 @@ public class CommentDTO {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 }

@@ -1,16 +1,12 @@
 package CIC.social_media_api.entity;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id"
-)
 public class Comment {
 
     @Id
@@ -45,7 +41,7 @@ public class Comment {
         this.createdDate = LocalDateTime.now();
     }
 
-    // Getters and setters
+    // Getters and Setters
     public Long getId() {
         return id;
     }

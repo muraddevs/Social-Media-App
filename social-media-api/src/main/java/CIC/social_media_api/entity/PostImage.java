@@ -1,46 +1,30 @@
 package CIC.social_media_api.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "post_images")
 public class PostImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Column(name = "name")
+    @Column(nullable = false)
     private String name;
 
-    @NotNull
-    @Column(name = "type")
+    @Column(nullable = false)
     private String type;
 
-    @NotNull
-    @Column(name = "data")
-    private String data; // Store image URL or path instead of Base64
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGBLOB")
+    private byte[] data; // Binary data storage
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
-    @JsonBackReference
     private Post post;
 
-    // Default constructor
-    public PostImage() {}
-
-    // Parameterized constructor
-    public PostImage(String name, String type, String data, Post post) {
-        this.name = name;
-        this.type = type;
-        this.data = data;
-        this.post = post;
-    }
-
     // Getters and Setters
+
     public Long getId() {
         return id;
     }
@@ -65,11 +49,11 @@ public class PostImage {
         this.type = type;
     }
 
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 

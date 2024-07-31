@@ -1,15 +1,14 @@
 package CIC.social_media_api.service;
 
 import CIC.social_media_api.dto.CommentDTO;
+import CIC.social_media_api.dto.UserDTO;
 import CIC.social_media_api.entity.Comment;
+import CIC.social_media_api.entity.User;
 import CIC.social_media_api.repository.CommentRepository;
-import CIC.social_media_api.repository.PostRepository;
-import CIC.social_media_api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,51 +17,37 @@ public class CommentService {
     @Autowired
     private CommentRepository commentRepository;
 
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    public Optional<CommentDTO> getCommentById(Long id) {
-        return commentRepository.findById(id)
-                .map(this::convertToDTO);
+    // Convert User entity to UserDTO
+    private UserDTO convertToUserDTO(User user) {
+        return new UserDTO(user.getId(), user.getUserName());
     }
 
-    public CommentDTO createComment(CommentDTO commentDTO) {
-        Comment comment = convertToEntity(commentDTO);
+    // Convert Comment entity to CommentDTO
+    private CommentDTO convertToCommentDTO(Comment comment) {
+        UserDTO userDTO = convertToUserDTO(comment.getUser());
+        return new CommentDTO(comment.getId(), comment.getDescription(), userDTO, comment.getCreatedDate());
+    }
+
+    // Fetch comment by ID and return CommentDTO
+    public CommentDTO getCommentById(Long id) {
+        Comment comment = commentRepository.findById(id).orElse(null);
+        return comment != null ? convertToCommentDTO(comment) : null;
+    }
+
+    // Create a new comment and return CommentDTO
+    public CommentDTO createComment(Comment comment) {
         Comment savedComment = commentRepository.save(comment);
-        return convertToDTO(savedComment);
+        return convertToCommentDTO(savedComment);
     }
 
+    // Fetch comments by post ID and return List<CommentDTO>
     public List<CommentDTO> getCommentsByPostId(Long postId) {
-        return commentRepository.findByPostId(postId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        List<Comment> comments = commentRepository.findByPostIdWithUserAndPost(postId);
+        return comments.stream().map(this::convertToCommentDTO).collect(Collectors.toList());
     }
 
+    // Delete a comment by ID
     public void deleteComment(Long id) {
         commentRepository.deleteById(id);
-    }
-
-    private CommentDTO convertToDTO(Comment comment) {
-        CommentDTO dto = new CommentDTO();
-        dto.setId(comment.getId());
-        dto.setDescription(comment.getDescription());
-        dto.setPostId(comment.getPost().getId());
-        dto.setUserId(comment.getUser().getId());
-        dto.setCreatedDate(comment.getCreatedDate());
-        dto.setUserName(comment.getUser().getUserName());
-        return dto;
-    }
-
-    private Comment convertToEntity(CommentDTO dto) {
-        Comment comment = new Comment();
-        comment.setId(dto.getId());
-        comment.setDescription(dto.getDescription());
-        comment.setCreatedDate(dto.getCreatedDate());
-        comment.setPost(postRepository.findById(dto.getPostId()).orElse(null));
-        comment.setUser(userRepository.findById(dto.getUserId()).orElse(null));
-        return comment;
     }
 }

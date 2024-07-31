@@ -1,14 +1,12 @@
 package CIC.social_media_api.service;
 
-import CIC.social_media_api.dto.LikeDTO;
-import CIC.social_media_api.dto.PostDTO;
-import CIC.social_media_api.dto.UserDTO;
 import CIC.social_media_api.entity.Like;
-import CIC.social_media_api.entity.Post;
-import CIC.social_media_api.entity.User;
 import CIC.social_media_api.repository.LikeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LikeService {
@@ -16,73 +14,66 @@ public class LikeService {
     @Autowired
     private LikeRepository likeRepository;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private PostService postService;
-
-    public LikeDTO getLikeById(Long id) {
-        return likeRepository.findById(id)
-                .map(like -> new LikeDTO(
-                        like.getId(),
-                        like.getUser().getId(),
-                        like.getPost().getId(),
-                        like.isDislike(),
-                        like.getUser().getUserName()
-                ))
-                .orElse(null);
+    public List<Like> getAllLikes() {
+        return likeRepository.findAll();
     }
 
-    public LikeDTO createLike(LikeDTO likeDTO) {
-        Like like = new Like();
-
-        // Fetch User entity from UserService
-        User user = userService.getUserById(likeDTO.getUserId())
-                .map(dto -> {
-                    User u = new User();
-                    u.setId(dto.getId());
-                    // Populate other fields if needed
-                    return u;
-                })
-                .orElse(null);
-        like.setUser(user);
-
-        // Get Post entity from PostService
-        Post post = postService.findPostById(likeDTO.getPostId())
-                .map(dto -> {
-                    Post p = new Post();
-                    p.setId(dto.getId());
-                    return p;
-                })
-                .orElse(null);
-
-        like.setPost(post);
-        like.setDislike(likeDTO.isDislike());
-        Like savedLike = likeRepository.save(like);
-
-        return new LikeDTO(
-                savedLike.getId(),
-                savedLike.getUser().getId(),
-                savedLike.getPost().getId(),
-                savedLike.isDislike(),
-                savedLike.getUser().getUserName()
-        );
+    public Like getLikeById(Long id) {
+        return likeRepository.findById(id).orElse(null);
     }
 
-    public void removeLike(Long userId, Long postId) {
-        likeRepository.deleteByUserIdAndPostId(userId, postId);
+    public Like createLike(Like like) {
+        return likeRepository.save(like);
     }
 
-    public void removeDislike(Long userId, Long postId) {
-        likeRepository.deleteByUserIdAndPostIdAndDislike(userId, postId, true);
+    public void deleteLikeById(Long id) {
+        likeRepository.deleteById(id);
+    }
+
+    public Optional<Like> getLikeByUserAndPost(Long userId, Long postId) {
+        return likeRepository.findByUserIdAndPostId(userId, postId);
     }
 
     public boolean hasLikedPost(Long userId, Long postId) {
-        return likeRepository.existsByUserIdAndPostIdAndDislike(userId, postId, false);
+        return getLikeByUserAndPost(userId, postId)
+                .map(like -> !like.isDislike())
+                .orElse(false);
     }
 
     public boolean hasDislikedPost(Long userId, Long postId) {
-        return likeRepository.existsByUserIdAndPostIdAndDislike(userId, postId, true);
+        return getLikeByUserAndPost(userId, postId)
+                .map(Like::isDislike)
+                .orElse(false);
+    }
+
+    public void removeLike(Long userId, Long postId) {
+        getLikeByUserAndPost(userId, postId)
+                .ifPresent(like -> {
+                    if (!like.isDislike()) {
+                        likeRepository.delete(like);
+                    }
+                });
+    }
+
+    public void removeDislike(Long userId, Long postId) {
+        getLikeByUserAndPost(userId, postId)
+                .ifPresent(like -> {
+                    if (like.isDislike()) {
+                        likeRepository.delete(like);
+                    }
+                });
+    }
+
+    public void createDislike(Like dislike) {
+        dislike.setDislike(true);
+        createLike(dislike);
+    }
+
+    public int getLikeCount(Long postId) {
+        return likeRepository.countByPostIdAndDislikeFalse(postId);
+    }
+
+    public int getDislikeCount(Long postId) {
+        return likeRepository.countByPostIdAndDislikeTrue(postId);
     }
 }

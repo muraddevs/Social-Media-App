@@ -1,83 +1,74 @@
 package CIC.social_media_api.service;
 
-import CIC.social_media_api.dto.PostImageDTO;
+import CIC.social_media_api.entity.Post;
 import CIC.social_media_api.entity.PostImage;
 import CIC.social_media_api.repository.PostImageRepository;
-import CIC.social_media_api.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class PostImageService {
 
     @Autowired
     private PostImageRepository postImageRepository;
 
     @Autowired
-    private PostRepository postRepository;
+    private PostService postService;
 
-    public PostImageDTO createPostImage(PostImageDTO postImageDTO) {
-        PostImage postImage = convertToEntity(postImageDTO);
-        PostImage savedPostImage = postImageRepository.save(postImage);
-        return convertToDTO(savedPostImage);
+    // Create a new PostImage
+    public PostImage createPostImage(PostImage postImage) {
+        return postImageRepository.save(postImage);
     }
 
-    public List<PostImageDTO> getAllPostImages() {
-        return postImageRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    // Get all PostImages
+    public List<PostImage> getAllPostImages() {
+        return postImageRepository.findAll();
     }
 
-    public Optional<PostImageDTO> getPostImageById(Long id) {
+    // Get a PostImage by its ID
+    public PostImage getPostImageById(Long id) {
         return postImageRepository.findById(id)
-                .map(this::convertToDTO);
+                .orElseThrow(() -> new IllegalArgumentException("PostImage not found with ID: " + id));
     }
 
-    public void deletePostImageById(Long id) {
-        postImageRepository.deleteById(id);
+    // Delete a PostImage by its ID
+    public boolean deletePostImageById(Long id) {
+        if (postImageRepository.existsById(id)) {
+            postImageRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
-    public List<PostImageDTO> findImagesByPostId(Long postId) {
-        return postImageRepository.findByPostId(postId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    // Find PostImages associated with a specific Post ID
+    public List<PostImage> findImagesByPostId(Long postId) {
+        return postImageRepository.findByPostId(postId);
     }
 
-    public PostImageDTO storeImage(MultipartFile file, PostImageDTO postDTO) throws IOException {
+    // Store an image and associate it with a Post
+    public PostImage storeImage(MultipartFile file, Long postId) throws IOException {
+        Post post = postService.findPostById(postId);
+
         PostImage postImage = new PostImage();
         postImage.setName(file.getOriginalFilename());
         postImage.setType(file.getContentType());
-        postImage.setData(Arrays.toString(file.getBytes())); // Store image data
-        postImage.setPost(postRepository.findById(postDTO.getId()).orElse(null));
+        postImage.setData(file.getBytes());
+        postImage.setPost(post);
 
-        PostImage savedPostImage = postImageRepository.save(postImage);
-        return convertToDTO(savedPostImage);
+        return postImageRepository.save(postImage);
     }
 
-    private PostImageDTO convertToDTO(PostImage postImage) {
-        PostImageDTO dto = new PostImageDTO();
-        dto.setId(postImage.getId());
-        dto.setName(postImage.getName());
-        dto.setType(postImage.getType());
-        dto.setData(new String(postImage.getData())); // Convert byte array to string
-        dto.setPostId(postImage.getPost().getId());
-        return dto;
-    }
-
-    private PostImage convertToEntity(PostImageDTO dto) {
-        PostImage postImage = new PostImage();
-        postImage.setId(dto.getId());
-        postImage.setName(dto.getName());
-        postImage.setType(dto.getType());
-        postImage.setData(Arrays.toString(dto.getData().getBytes())); // Convert string to byte array
-        postImage.setPost(postRepository.findById(dto.getPostId()).orElse(null));
-        return postImage;
+    // Delete all images associated with a specific Post
+    public void deleteImagesByPostId(Long postId) {
+        List<PostImage> images = postImageRepository.findByPostId(postId);
+        if (!images.isEmpty()) {
+            postImageRepository.deleteAll(images);
+        }
     }
 }

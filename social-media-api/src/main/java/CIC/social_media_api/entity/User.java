@@ -1,7 +1,6 @@
 package CIC.social_media_api.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +14,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@JsonIgnoreProperties({"password", "likes"}) // Ignore sensitive or potentially problematic fields during serialization
 public class User implements UserDetails {
 
     @Id
@@ -41,17 +39,22 @@ public class User implements UserDetails {
 
     @NotNull
     @Column(name = "password")
-    @JsonIgnore // Prevent password serialization
     private String password;
 
     @NotNull
     @Column(name = "role")
     private String role;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "user-comments")
+    private List<Comment> comments;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
     private List<Post> posts;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Like> likes;
 
     // Default constructor
@@ -122,6 +125,14 @@ public class User implements UserDetails {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
     public List<Post> getPosts() {

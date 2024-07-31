@@ -1,6 +1,6 @@
 package CIC.social_media_api.controller;
 
-import CIC.social_media_api.dto.UserDTO;
+import CIC.social_media_api.entity.User;
 import CIC.social_media_api.jwt.JwtResponse;
 import CIC.social_media_api.jwt.JwtTokenProvider;
 import CIC.social_media_api.service.UserService;
@@ -46,21 +46,28 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticate(@RequestBody AuthRequest authRequest) {
         try {
-            Optional<UserDTO> optionalUser = userService.findByUserNameOrEmail(authRequest.getUsernameOrEmail());
+            Optional<User> optionalUser;
+
+            // Check if authRequest contains an email or username
+            if (authRequest.getUsernameOrEmail().contains("@")) {
+                optionalUser = userService.findByEmail(authRequest.getUsernameOrEmail());
+            } else {
+                optionalUser = userService.findByUserName(authRequest.getUsernameOrEmail());
+            }
 
             if (optionalUser.isEmpty()) {
-                logger.warn("Authentication failed: User not found for provided username or email.");
+                logger.warn("Authentication failed: User not found for email or username {}", authRequest.getUsernameOrEmail());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: User not found");
             }
 
-            UserDTO userDTO = optionalUser.get();
-            if (passwordEncoder.matches(authRequest.getPassword(), userDTO.getPassword())) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(userDTO.getUserName());
-                Long userId = userDTO.getId();
+            User user = optionalUser.get();
+            if (passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUserName());
+                Long userId = user.getId();
                 String jwt = jwtTokenProvider.generateToken(userDetails, userId);
                 return ResponseEntity.ok(new JwtResponse(jwt));
             } else {
-                logger.warn("Authentication failed: Incorrect password for user.");
+                logger.warn("Authentication failed: Incorrect password for email or username {}", authRequest.getUsernameOrEmail());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: Incorrect password");
             }
         } catch (Exception e) {
@@ -76,20 +83,13 @@ public class AuthController {
         String email = request.getEmail();
         String name = request.getName();
         String lastName = request.getLastName();
-        String role = request.getRole();
+        String role = request.getRole(); // Retrieve role from request
 
         if (userService.existsByUsername(username)) {
-            logger.warn("Registration failed: Username is already taken.");
             return ResponseEntity.badRequest().body("Username is already taken");
         }
 
-        if (userService.existsByEmail(email)) {
-            logger.warn("Registration failed: Email is already in use.");
-            return ResponseEntity.badRequest().body("Email is already in use");
-        }
-
-        String encodedPassword = passwordEncoder.encode(password);
-        userService.createUser(username, encodedPassword, email, name, lastName, role);
+        userService.createUser(username, password, email, name, lastName, role); // Pass role to createUser
 
         return ResponseEntity.ok("User registered successfully");
     }
@@ -122,7 +122,7 @@ public class AuthController {
         private String email;
         private String name;
         private String lastName;
-        private String role;
+        private String role; // Include role field
 
         public String getUsername() {
             return username;
