@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -70,5 +71,23 @@ public class PostImageService {
         if (!images.isEmpty()) {
             postImageRepository.deleteAll(images);
         }
+    }
+
+    // Get the list of existing image IDs
+    public List<Long> getExistingImageIds() {
+        return postImageRepository.findAll()
+                .stream()
+                .map(PostImage::getId) // Ensure PostImage has getId()
+                .collect(Collectors.toList());
+    }
+
+    // Filter posts by valid images
+    public List<Post> filterPostsWithValidImages(List<Post> posts) {
+        List<Long> existingImageIds = getExistingImageIds();
+
+        return posts.stream()
+                .filter(post -> post.getPostImages().stream() // Updated method name
+                        .anyMatch(image -> existingImageIds.contains(image.getId()))) // Ensure PostImage has getId()
+                .collect(Collectors.toList());
     }
 }

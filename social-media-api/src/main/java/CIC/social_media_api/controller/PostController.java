@@ -76,20 +76,31 @@ public class PostController {
             post.setDescription(description);
             post.setCreatedAt(LocalDateTime.now());
 
+            // Save the post first to generate the ID
+            Post createdPost = postService.createPost(post);
+
+            // If there's an image, save it and associate it with the post
             if (file != null && !file.isEmpty()) {
                 try {
-                    PostImage postImage = postImageService.storeImage(file, post.getId());
-                    post.getPostImages().add(postImage);
+                    PostImage postImage = new PostImage();
+                    postImage.setName(file.getOriginalFilename());
+                    postImage.setType(file.getContentType());
+                    postImage.setData(file.getBytes());
+                    postImage.setPost(createdPost); // Associate with the saved post
+                    postImageService.createPostImage(postImage);
+
+                    // Update the post with the new image
+                    createdPost.getPostImages().add(postImage);
+                    postService.updatePost(createdPost);
                 } catch (IOException e) {
-                    logger.error("Error storing image for post ID {}: ", post.getId(), e);
+                    logger.error("Error storing image for post ID {}: ", createdPost.getId(), e);
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
                 } catch (IllegalArgumentException e) {
-                    logger.error("Invalid argument error while storing image for post ID {}: ", post.getId(), e);
+                    logger.error("Invalid argument error while storing image for post ID {}: ", createdPost.getId(), e);
                     return ResponseEntity.badRequest().build();
                 }
             }
 
-            Post createdPost = postService.createPost(post);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
 
         } catch (Exception e) {

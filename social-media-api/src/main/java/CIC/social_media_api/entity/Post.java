@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "posts")
@@ -116,6 +117,7 @@ public class Post {
         this.comments = comments;
     }
 
+    // Methods for managing PostImages
     public void addPostImage(PostImage postImage) {
         postImages.add(postImage);
         postImage.setPost(this);
@@ -126,6 +128,7 @@ public class Post {
         postImage.setPost(null);
     }
 
+    // Methods for managing Comments
     public void addComment(Comment comment) {
         comments.add(comment);
         comment.setPost(this);
@@ -136,7 +139,16 @@ public class Post {
         comment.setPost(null);
     }
 
+    // Method to get the user's name
     public String getUserName() {
         return user != null ? user.getUserName() : "Unknown User";
+    }
+
+    // Method to check if the post has valid images
+    @Transient
+    @JsonIgnore
+    public boolean hasValidImages(List<Long> existingImageIds) {
+        return postImages.stream()
+                .anyMatch(image -> existingImageIds.contains(image.getId()));
     }
 }

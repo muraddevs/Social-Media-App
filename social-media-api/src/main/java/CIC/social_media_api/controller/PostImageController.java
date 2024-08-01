@@ -82,6 +82,11 @@ public class PostImageController {
         }
 
         try {
+            // Check if the post exists
+            if (postService.findPostById(postId) == null) {
+                return ResponseEntity.badRequest().body("Post not found with ID: " + postId);
+            }
+
             PostImage postImage = postImageService.storeImage(file, postId);
             return ResponseEntity.ok("Image uploaded successfully: " + postImage.getId());
         } catch (IOException e) {
@@ -97,8 +102,12 @@ public class PostImageController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deletePostImage(@PathVariable Long id) {
         try {
-            postImageService.deletePostImageById(id);
-            return ResponseEntity.ok("Image deleted successfully");
+            boolean deleted = postImageService.deletePostImageById(id);
+            if (deleted) {
+                return ResponseEntity.ok("Image deleted successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
+            }
         } catch (Exception e) {
             logger.error("Error deleting post image with ID {}: ", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting image: " + e.getMessage());

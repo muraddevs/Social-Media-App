@@ -51,7 +51,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll() // Allow access to authentication and Swagger endpoints
                         .requestMatchers("/api/posts/**").hasAnyRole("USER", "ADMIN") // Restrict access to posts endpoints
-                        .requestMatchers("/api/likes/**").hasAnyRole("USER", "ADMIN") // Restrict access to likes endpoints
+                        .requestMatchers("/api/likes/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/post-images/**").hasAnyRole("USER", "ADMIN")// Restrict access to likes endpoints
                         .anyRequest().authenticated() // Ensure all other endpoints require authentication
                 )
                 .sessionManagement(session -> session

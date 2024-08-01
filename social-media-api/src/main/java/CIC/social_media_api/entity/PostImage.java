@@ -3,6 +3,7 @@ package CIC.social_media_api.entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "post_image")
 public class PostImage {
 
     @Id
