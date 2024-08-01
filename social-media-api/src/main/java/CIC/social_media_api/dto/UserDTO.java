@@ -1,8 +1,13 @@
 package CIC.social_media_api.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UserDTO {
+
+    @JsonProperty("id")
     private Long id;
+
+    @JsonProperty("userName")
     private String userName;
 
     // Default constructor

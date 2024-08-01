@@ -1,5 +1,6 @@
 package CIC.social_media_api.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -8,9 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -47,15 +46,23 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference(value = "user-comments")
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference
-    private List<Post> posts;
+    @JsonManagedReference(value = "user-posts")
+    private List<Post> posts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Like> likes;
+    @JsonManagedReference(value = "user-likes")
+    private List<Like> likes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference("user-followers") // Unique reference name for followers
+    private Set<Follow> followers = new HashSet<>();
+
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference("user-following") // Unique reference name for following
+    private Set<Follow> following = new HashSet<>();
 
     // Default constructor
     public User() {}
@@ -149,6 +156,22 @@ public class User implements UserDetails {
 
     public void setLikes(List<Like> likes) {
         this.likes = likes;
+    }
+
+    public Set<Follow> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Set<Follow> followers) {
+        this.followers = followers;
+    }
+
+    public Set<Follow> getFollowing() {
+        return following;
+    }
+
+    public void setFollowing(Set<Follow> following) {
+        this.following = following;
     }
 
     @Override
