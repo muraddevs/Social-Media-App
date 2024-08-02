@@ -1,0 +1,134 @@
+/* Container for the bottom bar and form */
+.bar-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(241, 241, 241, 0.8);
+    border-top: 1px solid rgba(221, 221, 221, 0.8);
+    padding: 10px;
+    box-shadow: 0px -2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+/* Styling for the bottom bar inside the container */
+.bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Styling for the post button in the bottom bar */
+.post-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Main post feed container with flex properties */
+.post-feed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    padding-bottom: 100px; /* Adjust space for the sticky bar-container and form */
+}
+
+/* Styling for individual post cards */
+.post-feed-card {
+    border: 1px solid #000000;
+    width: 95%;
+    margin: 5px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    position: relative; /* Needed for absolute positioning of timestamp */
+}
+
+/* Container for images inside the post card */
+.images-container {
+    flex: 1; /* Allows the image container to take up space and push timestamp down */
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Container for username */
+.username-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: left;
+    flex-wrap: wrap;
+}
+
+/* Styling for the username text */
+.user-name {
+    margin: 10px;
+}
+
+/* Styling for the post description */
+.post-description {
+    margin: 10px;
+}
+
+/* Styling for the timestamp of the post */
+.posted-at {
+    margin: 10px;
+    font-size: 14px;
+    font-weight: lighter;
+}
+
+/* Styling for the PostForm container */
+.post-form-container {
+    position: fixed;
+    bottom: 60px; /* Adjust based on the height of the bottom bar */
+    right: 10px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Ensure form is on top of other content */
+}
+
+/* Styling for the open form button */
+.open-form-button {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000; /* Ensure button is on top */
+}
+
+/* Styling for the form button when it's clicked */
+.open-form-button:focus {
+    outline: none;
+}
+
+/* Styling for the cancel button inside the PostForm */
+.cancel-button {
+    width: 48%;
+    padding: 10px;
+    background-color: #f44336;
+    color: #FFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Styling for the post button inside the PostForm */
+.submit-button {
+    width: 48%;
+    padding: 10px;
+    background-color: #007BFF;
+    color: #FFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

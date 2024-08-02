@@ -1,0 +1,128 @@
+@keyframes gradientAnimation {
+    0% {
+        background-image:
+                radial-gradient(at 65% 3%, hsla(322, 60%, 77%, 1) 0px, transparent 50%),
+                radial-gradient(at 18% 21%, hsla(255, 88%, 62%, 1) 0px, transparent 50%),
+                radial-gradient(at 15% 17%, hsla(52, 61%, 70%, 1) 0px, transparent 50%),
+                radial-gradient(at 55% 22%, hsla(48, 69%, 74%, 1) 0px, transparent 50%),
+                radial-gradient(at 42% 10%, hsla(230, 90%, 71%, 1) 0px, transparent 50%),
+                radial-gradient(at 73% 96%, hsla(167, 93%, 71%, 1) 0px, transparent 50%);
+        background-position: 0% 0%;
+    }
+    25% {
+        background-image:
+                radial-gradient(at 50% 50%, hsla(322, 60%, 77%, 1) 0px, transparent 50%),
+                radial-gradient(at 30% 30%, hsla(255, 88%, 62%, 1) 0px, transparent 50%),
+                radial-gradient(at 25% 35%, hsla(52, 61%, 70%, 1) 0px, transparent 50%),
+                radial-gradient(at 70% 40%, hsla(48, 69%, 74%, 1) 0px, transparent 50%),
+                radial-gradient(at 55% 25%, hsla(230, 90%, 71%, 1) 0px, transparent 50%),
+                radial-gradient(at 80% 85%, hsla(167, 93%, 71%, 1) 0px, transparent 50%);
+        background-position: 50% 50%;
+    }
+    50% {
+        background-image:
+                radial-gradient(at 65% 3%, hsla(322, 60%, 77%, 1) 0px, transparent 50%),
+                radial-gradient(at 18% 21%, hsla(255, 88%, 62%, 1) 0px, transparent 50%),
+                radial-gradient(at 15% 17%, hsla(52, 61%, 70%, 1) 0px, transparent 50%),
+                radial-gradient(at 55% 22%, hsla(48, 69%, 74%, 1) 0px, transparent 50%),
+                radial-gradient(at 42% 10%, hsla(230, 90%, 71%, 1) 0px, transparent 50%),
+                radial-gradient(at 73% 96%, hsla(167, 93%, 71%, 1) 0px, transparent 50%);
+        background-position: 100% 100%;
+    }
+    75% {
+        background-image:
+                radial-gradient(at 50% 50%, hsla(322, 60%, 77%, 1) 0px, transparent 50%),
+                radial-gradient(at 30% 30%, hsla(255, 88%, 62%, 1) 0px, transparent 50%),
+                radial-gradient(at 25% 35%, hsla(52, 61%, 70%, 1) 0px, transparent 50%),
+                radial-gradient(at 70% 40%, hsla(48, 69%, 74%, 1) 0px, transparent 50%),
+                radial-gradient(at 55% 25%, hsla(230, 90%, 71%, 1) 0px, transparent 50%),
+                radial-gradient(at 80% 85%, hsla(167, 93%, 71%, 1) 0px, transparent 50%);
+        background-position: 50% 50%;
+    }
+    100% {
+        background-image:
+                radial-gradient(at 65% 3%, hsla(322, 60%, 77%, 1) 0px, transparent 50%),
+                radial-gradient(at 18% 21%, hsla(255, 88%, 62%, 1) 0px, transparent 50%),
+                radial-gradient(at 15% 17%, hsla(52, 61%, 70%, 1) 0px, transparent 50%),
+                radial-gradient(at 55% 22%, hsla(48, 69%, 74%, 1) 0px, transparent 50%),
+                radial-gradient(at 42% 10%, hsla(230, 90%, 71%, 1) 0px, transparent 50%),
+                radial-gradient(at 73% 96%, hsla(167, 93%, 71%, 1) 0px, transparent 50%);
+        background-position: 0% 0%;
+    }
+}
+
+.home-container {
+    background-color: #99ffb1; /* Fallback color if gradients do not load */
+    background-image:
+            radial-gradient(at 65% 3%, hsla(322, 60%, 77%, 1) 0px, transparent 50%),
+            radial-gradient(at 18% 21%, hsla(255, 88%, 62%, 1) 0px, transparent 50%),
+            radial-gradient(at 15% 17%, hsla(52, 61%, 70%, 1) 0px, transparent 50%),
+            radial-gradient(at 55% 22%, hsla(48, 69%, 74%, 1) 0px, transparent 50%),
+            radial-gradient(at 42% 10%, hsla(230, 90%, 71%, 1) 0px, transparent 50%),
+            radial-gradient(at 73% 96%, hsla(167, 93%, 71%, 1) 0px, transparent 50%);
+    background-size: 150% 150%; /* Larger size to make the animation more noticeable */
+    background-blend-mode: multiply; /* Adjusts how gradients blend with the background color */
+    background-position: 0% 0%; /* Initial position */
+    position: relative; /* Required for z-index to work */
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    overflow: hidden; /* Ensures content doesn’t overflow */
+    animation: gradientAnimation 30s linear infinite; /* Smooth continuous animation */
+}
+
+.blur-background {
+    position: absolute;
+    top: 0;
+    right: 0; /* Move the background to the right */
+    width: 50%; /* Covers the right half of the page */
+    height: 100%; /* Full height */
+    background: rgba(255, 255, 255, 0.6); /* White background with 80% opacity */
+    backdrop-filter: blur(10px); /* Applies blur effect */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center buttons vertically */
+    z-index: 1; /* Positioned above the gradient background */
+}
+
+.nav-container {
+    position: absolute;
+    top: 0;
+    right: 0; /* Align with the blur background */
+    width: 50%; /* Align with the blur background */
+    height: 100%; /* Full height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center content within the nav */
+    z-index: 2; /* Ensures nav is above the blur background */
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column; /* Align buttons in a column */
+    gap: 10px;
+}
+
+.signup-button, .login-button {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.switch-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.switch-link p {
+    margin: 0;
+}
+
+.switch-link button {
+    background: none;
+    border: none;
+    color: blue;
+    cursor: pointer;
+    font-size: 14px;
+}
+

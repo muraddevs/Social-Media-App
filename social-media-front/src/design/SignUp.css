@@ -1,0 +1,16 @@
+.switch-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.switch-link p {
+    margin: 0;
+}
+
+.switch-link button {
+    background: none;
+    border: none;
+    color: blue;
+    cursor: pointer;
+    font-size: 14px;
+}
