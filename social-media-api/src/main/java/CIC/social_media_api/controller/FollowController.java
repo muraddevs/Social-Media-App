@@ -1,17 +1,14 @@
 package CIC.social_media_api.controller;
 
 import CIC.social_media_api.dto.FollowDTO;
-import CIC.social_media_api.entity.Follow;
 import CIC.social_media_api.service.FollowService;
 import CIC.social_media_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Collections;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/follows")
@@ -27,7 +24,7 @@ public class FollowController {
 
     @PostMapping
     public ResponseEntity<?> createFollow(@RequestBody FollowDTO followDTO) {
-        logger.info("Received FollowDTO - UserId: " + followDTO.getUserId() + ", FollowingId: " + followDTO.getFollowingId());
+        logger.info("Received FollowDTO for creation - UserId: " + followDTO.getUserId() + ", FollowingId: " + followDTO.getFollowingId());
 
         // Validate followDTO
         if (followDTO.getUserId() == null || followDTO.getFollowingId() == null) {
@@ -42,38 +39,60 @@ public class FollowController {
             return ResponseEntity.notFound().build();
         }
 
-        // Ensure FollowDTO is set properly
-        FollowDTO dtoToCreate = new FollowDTO();
-        dtoToCreate.setUserId(followDTO.getUserId());
-        dtoToCreate.setFollowingId(followDTO.getFollowingId());
+        // Check if already following or self-follow
+        if (followDTO.getUserId().equals(followDTO.getFollowingId())) {
+            return ResponseEntity.badRequest().body("Cannot follow yourself");
+        }
 
-        FollowDTO createdFollowDTO = followService.createFollow(dtoToCreate);
+        if (followService.isFollowing(followDTO.getUserId(), followDTO.getFollowingId())) {
+            return ResponseEntity.badRequest().body("Already following");
+        }
+
+        FollowDTO createdFollowDTO = followService.createFollow(followDTO);
         return ResponseEntity.ok(createdFollowDTO);
     }
 
+    @DeleteMapping
+    public ResponseEntity<?> deleteFollow(@RequestBody FollowDTO followDTO) {
+        logger.info("Received FollowDTO for deletion - UserId: " + followDTO.getUserId() + ", FollowingId: " + followDTO.getFollowingId());
 
-    @GetMapping("/{id}")
-    public ResponseEntity<FollowDTO> getFollowById(@PathVariable Long id) {
-        Optional<FollowDTO> followDTO = followService.getFollowById(id);
-        if (followDTO.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        // Validate followDTO
+        if (followDTO.getUserId() == null || followDTO.getFollowingId() == null) {
+            logger.warning("Invalid FollowDTO: UserId or FollowingId is null");
+            return ResponseEntity.badRequest().body("UserId or FollowingId is null");
         }
-        return ResponseEntity.ok(followDTO.get());
+
+        if (followDTO.getUserId().equals(followDTO.getFollowingId())) {
+            return ResponseEntity.badRequest().body("Cannot unfollow yourself");
+        }
+
+        if (!followService.isFollowing(followDTO.getUserId(), followDTO.getFollowingId())) {
+            return ResponseEntity.badRequest().body("Not following");
+        }
+
+        followService.deleteFollow(followDTO.getUserId(), followDTO.getFollowingId());
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
-    public ResponseEntity<List<FollowDTO>> getAllFollows() {
-        List<FollowDTO> followDTOs = followService.getAllFollows();
-        return ResponseEntity.ok(followDTOs);
-    }
+    @GetMapping("/check")
+    public ResponseEntity<?> checkIfFollowing(@RequestParam Long userId, @RequestParam Long followingId) {
+        logger.info("Received check request - UserId: " + userId + ", FollowingId: " + followingId);
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFollow(@PathVariable Long id) {
-        try {
-            followService.deleteFollowById(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
+        // Validate request parameters
+        if (userId == null || followingId == null) {
+            logger.warning("Invalid request parameters: UserId or FollowingId is null");
+            return ResponseEntity.badRequest().body("UserId or FollowingId is null");
+        }
+
+        // Check if users exist
+        if (!userService.getUserById(userId).isPresent() ||
+                !userService.getUserById(followingId).isPresent()) {
+            logger.warning("User not found: UserId=" + userId + ", FollowingId=" + followingId);
             return ResponseEntity.notFound().build();
         }
+
+        // Check if following
+        boolean isFollowing = followService.isFollowing(userId, followingId);
+        return ResponseEntity.ok(Collections.singletonMap("isFollowing", isFollowing));
     }
 }

@@ -6,6 +6,7 @@ import CIC.social_media_api.entity.User;
 import CIC.social_media_api.service.PostService;
 import CIC.social_media_api.service.PostImageService;
 import CIC.social_media_api.service.UserService;
+import CIC.social_media_api.response.PostResponse;// Import the PostResponse class
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +38,11 @@ public class PostController {
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
+    public ResponseEntity<List<PostResponse>> getAllPosts() {
         try {
             List<Post> posts = postService.findAllPosts();
-            return ResponseEntity.ok(posts);
+            List<PostResponse> postResponses = posts.stream().map(this::convertToPostResponse).toList();
+            return ResponseEntity.ok(postResponses);
         } catch (Exception e) {
             logger.error("Error retrieving all posts: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -48,10 +50,10 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Post> getPostById(@PathVariable Long id) {
+    public ResponseEntity<PostResponse> getPostById(@PathVariable Long id) {
         try {
             Post post = postService.findPostById(id);
-            return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+            return post != null ? ResponseEntity.ok(convertToPostResponse(post)) : ResponseEntity.notFound().build();
         } catch (Exception e) {
             logger.error("Error retrieving post with ID {}: ", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -60,9 +62,9 @@ public class PostController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Post> createPost(@RequestParam(value = "description", required = false) String description,
-                                           @RequestParam(value = "file", required = false) MultipartFile file,
-                                           Authentication authentication) {
+    public ResponseEntity<PostResponse> createPost(@RequestParam(value = "description", required = false) String description,
+                                                   @RequestParam(value = "file", required = false) MultipartFile file,
+                                                   Authentication authentication) {
         try {
             Optional<User> optionalUser = userService.findByUserName(authentication.getName());
 
@@ -101,7 +103,7 @@ public class PostController {
                 }
             }
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
+            return ResponseEntity.status(HttpStatus.CREATED).body(convertToPostResponse(createdPost));
 
         } catch (Exception e) {
             logger.error("Error creating post: ", e);
@@ -141,5 +143,20 @@ public class PostController {
             logger.error("Invalid argument error while uploading image for post ID {}: ", postId, e);
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    private PostResponse convertToPostResponse(Post post) {
+        PostResponse postResponse = new PostResponse();
+        postResponse.setId(post.getId());
+        postResponse.setDescription(post.getDescription());
+        postResponse.setCreatedAt(post.getCreatedAt());
+        postResponse.setUserId(post.getUser().getId());
+        postResponse.setUserName(post.getUser().getUserName());
+        postResponse.setPostImages(post.getPostImages().stream()
+                .map(img -> new PostResponse.PostImageResponse(img.getName(), img.getType(), img.getData()))
+                .toList());
+        postResponse.setLikeCount(post.getLikes().size()); // Adjust this if you have a separate like count service
+        postResponse.setDislikeCount(post.getDislikes()); // Adjust this if you have a separate dislike count service
+        return postResponse;
     }
 }

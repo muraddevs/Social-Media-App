@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// ...
+
 @Entity
 @Table(name = "posts")
 @JsonIgnoreProperties(value = {"user"}, allowSetters = true)
@@ -147,8 +149,15 @@ public class Post {
     // Method to check if the post has valid images
     @Transient
     @JsonIgnore
-    public boolean hasValidImages(List<Long> existingImageIds) {
-        return postImages.stream()
-                .anyMatch(image -> existingImageIds.contains(image.getId()));
+    public boolean hasImages() {
+        return postImages != null && !postImages.isEmpty();
+    }
+
+    @Transient
+    @JsonIgnore
+    public int getDislikes() {
+        return (int) likes.stream()
+                .filter(Like::isDislike)
+                .count();
     }
 }
