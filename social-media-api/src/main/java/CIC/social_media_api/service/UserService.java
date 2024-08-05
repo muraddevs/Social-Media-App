@@ -28,6 +28,10 @@ public class UserService extends CustomUserDetailsService {
         return userRepository.findById(id);
     }
 
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUserName(username);
+    }
+
     public User createUser(String userName, String password, String email, String name, String lastName, String role) {
         if (userRepository.existsByUserName(userName)) {
             throw new IllegalArgumentException("Username already exists: " + userName);

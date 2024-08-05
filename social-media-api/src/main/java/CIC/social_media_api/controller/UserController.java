@@ -29,6 +29,13 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/username/{username}")
+    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+        Optional<User> user = userService.getUserByUsername(username);
+        return user.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/create")
     public ResponseEntity<User> createUser(@RequestBody AuthController.RegisterRequest request) {
         User createdUser = userService.createUser(
@@ -41,7 +48,6 @@ public class UserController {
         );
         return ResponseEntity.ok(createdUser);
     }
-
 
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {

@@ -1,3 +1,5 @@
+// PostFeed.js
+
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -7,6 +9,8 @@ import { format, isToday, isYesterday, formatDistanceToNow, parseISO } from 'dat
 import { PlusCircleOutlined, LikeOutlined, DislikeOutlined, CommentOutlined } from '@ant-design/icons';
 import CommentList from './CommentList';
 import FollowButton from "./FollowButton";
+import {useNavigate} from "react-router-dom";
+
 
 const PostFeed = () => {
     const [posts, setPosts] = useState([]);
@@ -14,6 +18,12 @@ const PostFeed = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [userId, setUserId] = useState(null);
     const [commentsVisible, setCommentsVisible] = useState({});
+
+    const navigate = useNavigate();
+
+    const navigateToUserProfile = (userName) => {
+        navigate(`/user/${userName}`); // Programmatically navigate to user profile
+    };
 
     const handleCancel = () => {
         setIsFormOpen(false); // Close the form and show the button
@@ -164,15 +174,31 @@ const PostFeed = () => {
         return null;
     };
 
-    const handleNewPost = useCallback(async () => {
+    // Update the handleNewPost function
+    const handleNewPost = useCallback(async (newPost) => {
         try {
-            await fetchPosts();
+            // Fetch details for the new post
+            const token = Cookies.get('token');
+            const imageUrl = await fetchImages(newPost.id);
+            const [likesResponse, dislikesResponse] = await Promise.all([
+                axios.get('http://localhost:8080/api/likes/count', { params: { postId: newPost.id }, headers: { Authorization: `Bearer ${token}` } }),
+                axios.get('http://localhost:8080/api/likes/dislikeCount', { params: { postId: newPost.id }, headers: { Authorization: `Bearer ${token}` } })
+            ]);
+
+            const newPostWithDetails = {
+                ...newPost,
+                postImage: imageUrl ? { url: imageUrl } : null,
+                likeCount: likesResponse.data || 0,
+                dislikeCount: dislikesResponse.data || 0,
+            };
+
+            // Add the new post to the beginning of the posts array
+            setPosts((prevPosts) => [newPostWithDetails, ...prevPosts]);
             setIsFormOpen(false);
         } catch (error) {
-            console.error('Error refreshing posts after new post:', error);
+            console.error('Error adding new post:', error);
         }
-    }, [fetchPosts]);
-
+    }, []);
 
     const handleLike = async (postId) => {
         const token = Cookies.get('token');
@@ -248,16 +274,18 @@ const PostFeed = () => {
 
                             <div className="post-feed-content">
                                 <div className="post-feed-header">
-                                    <h3>{post.userName}</h3>
+                                    <div className="username" onClick={() => navigateToUserProfile(post.userName)}>
+                                        <h3>{post.userName}</h3>
+                                    </div>
                                     <p>UserId: {post.userId}</p> {/* Add logging */}
-                                    <FollowButton userIdToFollow={post.userId} />
+                                    <FollowButton userIdToFollow={post.userId}/>
                                     <p>{post.description}</p>
                                     {post.postImage && renderImage(post.postImage)}
                                     <p>{formatDate(post.createdAt)}</p>
                                 </div>
 
                                 <div className="post-feed-body">
-                                    <div className="post-feed-actions">
+                                <div className="post-feed-actions">
                                         <button onClick={() => handleLike(post.id)} className="like-button">
                                             <LikeOutlined/> {post.likeCount}
                                         </button>

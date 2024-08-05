@@ -69,4 +69,12 @@ public class FollowService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+
+    public long countFollowers(Long userId) {
+        return followRepository.countByFollowingId(userId);
+    }
+
+    public long countFollowing(Long userId) {
+        return followRepository.countByUserId(userId);
+    }
 }

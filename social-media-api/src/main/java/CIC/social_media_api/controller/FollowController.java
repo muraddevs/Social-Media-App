@@ -95,4 +95,22 @@ public class FollowController {
         boolean isFollowing = followService.isFollowing(userId, followingId);
         return ResponseEntity.ok(Collections.singletonMap("isFollowing", isFollowing));
     }
+
+    @GetMapping("/followers/count/{userId}")
+    public ResponseEntity<Long> getFollowerCount(@PathVariable Long userId) {
+        if (!userService.getUserById(userId).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        long count = followService.countFollowers(userId);
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/following/count/{userId}")
+    public ResponseEntity<Long> getFollowingCount(@PathVariable Long userId) {
+        if (!userService.getUserById(userId).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        long count = followService.countFollowing(userId);
+        return ResponseEntity.ok(count);
+    }
 }

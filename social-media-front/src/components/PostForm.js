@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode'; // Importing jwtDecode
+import {jwtDecode} from 'jwt-decode'; // Correct import statement for jwt-decode
 
 const PostForm = ({ onPostCreated, onCancel }) => {
     const [description, setDescription] = useState('');
@@ -42,9 +42,9 @@ const PostForm = ({ onPostCreated, onCancel }) => {
             setFile(null);
             setError('');
 
-            // Notify parent component to refresh the feed
+            // Notify parent component to refresh the feed with new post data
             if (onPostCreated) {
-                onPostCreated();
+                onPostCreated(response.data);
             }
         } catch (error) {
             console.error('Error creating post:', error);
