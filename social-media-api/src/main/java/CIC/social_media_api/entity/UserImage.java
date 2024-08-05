@@ -1,43 +1,35 @@
 package CIC.social_media_api.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "user_images")
 public class UserImage {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private  int id;
+    private Long id;
 
-    @Column(name = "name")
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "type")
+    @Column(nullable = false)
     private String type;
 
-    @Column(name = "data",length = 1000)
-    private byte[] data;
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGBLOB")
+    private byte[] data; // Binary data storage
 
-    @NotNull
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    User user;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    public byte[] getData() {
-        return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
-    public int getId() {
+    // Getters and setters
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -55,6 +47,14 @@ public class UserImage {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
     }
 
     public User getUser() {

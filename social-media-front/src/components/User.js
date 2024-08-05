@@ -3,7 +3,9 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import FollowButton from './FollowButton';
-import CommentList from './CommentList'; // Assume you have a CommentList component
+import CommentList from './CommentList';
+import ProfilePicUpload from "./ProfilePicUpload";
+import { jwtDecode } from 'jwt-decode'; // Fixed import
 
 const User = () => {
     const { username } = useParams();
@@ -12,50 +14,54 @@ const User = () => {
     const [followingCount, setFollowingCount] = useState(0);
     const [error, setError] = useState(null);
     const [visibleComments, setVisibleComments] = useState({}); // State to track visible comments
+    const [UserId, setUserId] = useState(null);
+
+    const fetchUserDetails = async () => {
+        try {
+            const token = Cookies.get('token');
+            if (!token) throw new Error('Token not found');
+
+            const userResponse = await axios.get(`http://localhost:8080/api/users/username/${username}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const user = userResponse.data;
+            const decodedToken = jwtDecode(token); // Use jwtDecode here
+            const userIdFromToken = decodedToken.userId;
+            setUserId(userIdFromToken);
+
+            const [followerResponse, followingResponse] = await Promise.all([
+                axios.get(`http://localhost:8080/api/follows/followers/count/${user.id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                axios.get(`http://localhost:8080/api/follows/following/count/${user.id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+            ]);
+
+            const postsWithDetails = await Promise.all(
+                user.posts.map(async post => {
+                    const images = await fetchImages(post.id);
+                    const likeCount = await fetchLikeCount(post.id);
+                    const dislikeCount = await fetchDislikeCount(post.id);
+                    return { ...post, images, likeCount, dislikeCount };
+                })
+            );
+
+            // Sort posts by creation date, most recent first
+            postsWithDetails.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            setUserDetails({ ...user, posts: postsWithDetails });
+            setFollowerCount(followerResponse.data);
+            setFollowingCount(followingResponse.data);
+            setError(null);
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+            setError('Error fetching user details');
+        }
+    };
 
     useEffect(() => {
-        const fetchUserDetails = async () => {
-            try {
-                const token = Cookies.get('token');
-                if (!token) throw new Error('Token not found');
-
-                const userResponse = await axios.get(`http://localhost:8080/api/users/username/${username}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                const user = userResponse.data;
-
-                const [followerResponse, followingResponse] = await Promise.all([
-                    axios.get(`http://localhost:8080/api/follows/followers/count/${user.id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }),
-                    axios.get(`http://localhost:8080/api/follows/following/count/${user.id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    })
-                ]);
-
-                const postsWithDetails = await Promise.all(
-                    user.posts.map(async post => {
-                        const images = await fetchImages(post.id);
-                        const likeCount = await fetchLikeCount(post.id);
-                        const dislikeCount = await fetchDislikeCount(post.id);
-                        return { ...post, images, likeCount, dislikeCount };
-                    })
-                );
-
-                // Sort posts by creation date, most recent first
-                postsWithDetails.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-                setUserDetails({ ...user, posts: postsWithDetails });
-                setFollowerCount(followerResponse.data);
-                setFollowingCount(followingResponse.data);
-                setError(null);
-            } catch (error) {
-                console.error('Error fetching user details:', error);
-                setError('Error fetching user details');
-            }
-        };
-
         fetchUserDetails();
     }, [username]);
 
@@ -203,6 +209,10 @@ const User = () => {
     return (
         <div className="user-profile-container">
             <h1>{userDetails.username}</h1>
+            {userDetails.id === UserId &&
+                <ProfilePicUpload onProfilePictureUploaded={fetchUserDetails} />
+            }
+
             <p>Posts: {userDetails.posts.length}</p>
             <p>Followers: {followerCount}</p>
             <p>Following: {followingCount}</p>

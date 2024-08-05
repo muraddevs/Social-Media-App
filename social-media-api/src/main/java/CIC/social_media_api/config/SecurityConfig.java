@@ -54,7 +54,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/likes/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/post-images/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/follows/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")// Restrict access to likes endpoints
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/user-images/**").hasAnyRole("USER", "ADMIN")// Restrict access to likes endpoints
                         .anyRequest().authenticated() // Ensure all other endpoints require authentication
                 )
                 .sessionManagement(session -> session

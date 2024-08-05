@@ -18,6 +18,7 @@ public class PostService {
 
     // Create a new post
     public Post createPost(Post post) {
+        // The createdBy and lastModifiedBy fields will be set automatically
         return postRepository.save(post);
     }
 
@@ -45,6 +46,7 @@ public class PostService {
         if (post.getId() == null || !postRepository.existsById(post.getId())) {
             throw new EntityNotFoundException("Post not found with ID: " + post.getId());
         }
+        // The lastModifiedBy field will be updated automatically
         return postRepository.save(post);
     }
 }
