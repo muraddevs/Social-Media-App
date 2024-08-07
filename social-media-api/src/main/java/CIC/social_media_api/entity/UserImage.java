@@ -1,5 +1,6 @@
 package CIC.social_media_api.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -22,6 +23,7 @@ public class UserImage {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference("user-images") // Ensure proper handling of bidirectional relationship
     private User user;
 
     // Getters and setters

@@ -3,6 +3,7 @@ package CIC.social_media_api.controller;
 import CIC.social_media_api.entity.Post;
 import CIC.social_media_api.entity.PostImage;
 import CIC.social_media_api.entity.User;
+import CIC.social_media_api.exception.ResourceNotFoundException;
 import CIC.social_media_api.service.PostService;
 import CIC.social_media_api.service.PostImageService;
 import CIC.social_media_api.service.UserService;
@@ -112,19 +113,17 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+    public ResponseEntity<?> deletePost(@PathVariable Long id) {
         try {
             postService.deletePost(id);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            logger.error("Error deleting post with ID {}: ", id, e);
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            logger.error("Error deleting post with ID {}: ", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     @PostMapping("/{postId}/images")
     @PreAuthorize("hasRole('USER')")

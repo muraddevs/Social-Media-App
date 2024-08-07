@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/user-images")
@@ -42,20 +43,21 @@ public class UserImageController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<byte[]> getUserImageById(@PathVariable Long id) {
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<byte[]> getUserProfileImage(@PathVariable Long userId) {
         try {
-            UserImage userImage = userImageService.getUserImageById(id);
-            if (userImage == null) {
+            Optional<UserImage> optionalUserImage = userImageService.getProfileImageByUserId(userId);
+            if (!optionalUserImage.isPresent()) {
                 return ResponseEntity.notFound().build();
             }
 
+            UserImage userImage = optionalUserImage.get();
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.CONTENT_TYPE, userImage.getType());
 
             return ResponseEntity.ok().headers(headers).body(userImage.getData());
         } catch (Exception e) {
-            logger.error("Error retrieving user image with ID {}: ", id, e);
+            logger.error("Error retrieving profile image for user ID {}: ", userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -73,8 +75,22 @@ public class UserImageController {
                 return ResponseEntity.badRequest().body("User not found with ID: " + userId);
             }
 
+            // Check file size (example limit: 5MB)
+            long maxFileSize = 5 * 1024 * 1024; // 5MB
+            if (file.getSize() > maxFileSize) {
+                return ResponseEntity.badRequest().body("File size exceeds the limit of 5MB.");
+            }
+
+            // Check if the user already has a profile picture
+            Optional<UserImage> existingProfilePicture = userImageService.getProfileImageByUserId(userId);
+            if (existingProfilePicture.isPresent()) {
+                // Delete the existing profile picture
+                userImageService.deleteUserImageById(existingProfilePicture.get().getId());
+            }
+
+            // Store the new profile picture
             UserImage userImage = userImageService.storeImage(file, userId);
-            return ResponseEntity.ok("Image uploaded successfully: " + userImage.getId());
+            return ResponseEntity.ok("Profile picture uploaded successfully: " + userImage.getId());
         } catch (IOException e) {
             logger.error("Error uploading image for user ID {}: ", userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading image: " + e.getMessage());
@@ -84,20 +100,26 @@ public class UserImageController {
         }
     }
 
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteUserImage(@PathVariable Long id) {
+    @DeleteMapping("/delete/{userId}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> deleteUserProfileImage(@PathVariable Long userId) {
         try {
-            boolean deleted = userImageService.deleteUserImageById(id);
-            if (deleted) {
-                return ResponseEntity.ok("Image deleted successfully");
+            // Check if the user exists
+            if (userService.getUserById(userId).isEmpty()) {
+                return ResponseEntity.badRequest().body("User not found with ID: " + userId);
+            }
+
+            // Delete the user's profile picture if it exists
+            Optional<UserImage> existingProfilePicture = userImageService.getProfileImageByUserId(userId);
+            if (existingProfilePicture.isPresent()) {
+                userImageService.deleteUserImageById(existingProfilePicture.get().getId());
+                return ResponseEntity.ok("Profile picture deleted successfully");
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profile picture not found");
             }
         } catch (Exception e) {
-            logger.error("Error deleting user image with ID {}: ", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting image: " + e.getMessage());
+            logger.error("Error deleting profile image for user ID {}: ", userId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting profile picture: " + e.getMessage());
         }
     }
 }

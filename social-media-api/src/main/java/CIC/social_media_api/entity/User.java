@@ -2,6 +2,7 @@ package CIC.social_media_api.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "users")
+@JsonSerialize(using = UserSerializer.class)
 public class User implements UserDetails {
 
     @Id
@@ -48,7 +50,7 @@ public class User implements UserDetails {
     @JsonManagedReference(value = "user-comments")
     private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference(value = "user-posts")
     private List<Post> posts = new ArrayList<>();
 
@@ -63,6 +65,10 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference("user-following") // Unique reference name for following
     private Set<Follow> following = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference("user-images") // Unique reference name for user images
+    private List<UserImage> userImages = new ArrayList<>();
 
     // Default constructor
     public User() {}
@@ -172,6 +178,14 @@ public class User implements UserDetails {
 
     public void setFollowing(Set<Follow> following) {
         this.following = following;
+    }
+
+    public List<UserImage> getUserImages() {
+        return userImages;
+    }
+
+    public void setUserImages(List<UserImage> userImages) {
+        this.userImages = userImages;
     }
 
     @Override

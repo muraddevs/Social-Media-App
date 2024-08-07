@@ -1,5 +1,3 @@
-// PostFeed.js
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -8,15 +6,15 @@ import '../design/PostFeedDesign.css';
 import { format, isToday, isYesterday, formatDistanceToNow, parseISO } from 'date-fns';
 import { PlusCircleOutlined, LikeOutlined, DislikeOutlined, CommentOutlined } from '@ant-design/icons';
 import CommentList from './CommentList';
-import FollowButton from "./FollowButton";
-import {useNavigate} from "react-router-dom";
-
+import FollowButton from './FollowButton';
+import { useNavigate } from 'react-router-dom';
 
 const PostFeed = () => {
     const [posts, setPosts] = useState([]);
     const [error, setError] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [userId, setUserId] = useState(null);
+    const [userName, setUserName] = useState(null);
     const [commentsVisible, setCommentsVisible] = useState({});
 
     const navigate = useNavigate();
@@ -24,6 +22,20 @@ const PostFeed = () => {
     const navigateToUserProfile = (userName) => {
         navigate(`/user/${userName}`); // Programmatically navigate to user profile
     };
+
+    const navigateToLogin = () => {
+        navigate(`/login`); // Programmatically navigate to user profile
+    };
+
+    const navigateToYourProfile = () => {
+        if (userName) {
+            console.log('Navigating to profile:', userName); // Add debug log
+            navigate(`/user/${userName}`);
+        } else {
+            console.error('Username not found');
+        }
+    };
+
 
     const handleCancel = () => {
         setIsFormOpen(false); // Close the form and show the button
@@ -57,8 +69,10 @@ const PostFeed = () => {
 
             const decodedToken = JSON.parse(atob(token.split('.')[1]));
             const userIdFromToken = decodedToken.userId;
+            const userNameFromToken = decodedToken.userName;
             console.log('Decoded userId from token:', userIdFromToken); // Log userId
             setUserId(userIdFromToken);
+            setUserName(userNameFromToken);
 
             if (Array.isArray(response.data)) {
                 const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -96,6 +110,7 @@ const PostFeed = () => {
             }
         } catch (error) {
             console.error('Error fetching posts:', error);
+            navigateToLogin()
             setError('Error fetching posts');
         }
     }, []);
@@ -105,6 +120,22 @@ const PostFeed = () => {
         const intervalId = setInterval(fetchPosts, 30000);
         return () => clearInterval(intervalId);
     }, [fetchPosts]);
+
+    useEffect(() => {
+        const token = Cookies.get('token');
+        if (token) {
+            try {
+                const decodedToken = JSON.parse(atob(token.split('.')[1]));
+                console.log('Decoded token:', decodedToken); // Add debug log
+                setUserName(decodedToken.userName);
+            } catch (error) {
+                console.error('Error decoding token:', error);
+            }
+        } else {
+            console.error('Token not found');
+        }
+    }, []);
+
 
     const formatDate = (dateString) => {
         const postDate = parseISO(dateString);
@@ -123,47 +154,42 @@ const PostFeed = () => {
     const renderImage = (imageData) => {
         console.log('Image Data:', imageData); // Log image data for debugging
 
-        // Check if imageData is an object and has a url property
         if (typeof imageData === 'object' && Array.isArray(imageData.url) && imageData.url.length > 0) {
             const image = imageData.url[0];
 
-            // Check if image has a data property (for base64 data)
             if (image.data) {
                 return (
                     <img
                         src={`data:${image.type};base64,${image.data}`}
                         alt="Post"
                         onError={(e) => {
-                            // Log the error and provide a fallback
                             console.error('Failed to load image:', e.target.src);
-                            e.target.src = 'default-image-url.jpg'; // Fallback image URL
-                            e.target.alt = 'Image failed to load'; // Update alt text
+                            e.target.src = 'default-image-url.jpg';
+                            e.target.alt = 'Image failed to load';
                         }}
                         style={{
                             width: 400,
                             height: 400,
-                            objectFit: 'cover' // Ensures the image covers the container
+                            objectFit: 'cover'
                         }}
                     />
                 );
             }
 
-            // If image does not have base64 data but just a URL
             if (image.url) {
                 return (
                     <img
                         src={image.url}
                         alt="Post"
                         onError={(e) => {
-                            // Log the error and provide a fallback
                             console.error('Failed to load image:', e.target.src);
-                            e.target.src = 'default-image-url.jpg'; // Fallback image URL
-                            e.target.alt = 'Image failed to load'; // Update alt text
+                            e.target.src = 'default-image-url.jpg';
+                            e.target.alt = 'Image failed to load';
                         }}
                         style={{
                             width: 400,
                             height: 400,
-                            objectFit: 'cover' // Ensures the image covers the container
+                            objectFit: 'cover'
                         }}
                     />
                 );
@@ -174,10 +200,8 @@ const PostFeed = () => {
         return null;
     };
 
-    // Update the handleNewPost function
     const handleNewPost = useCallback(async (newPost) => {
         try {
-            // Fetch details for the new post
             const token = Cookies.get('token');
             const imageUrl = await fetchImages(newPost.id);
             const [likesResponse, dislikesResponse] = await Promise.all([
@@ -192,7 +216,6 @@ const PostFeed = () => {
                 dislikeCount: dislikesResponse.data || 0,
             };
 
-            // Add the new post to the beginning of the posts array
             setPosts((prevPosts) => [newPostWithDetails, ...prevPosts]);
             setIsFormOpen(false);
         } catch (error) {
@@ -247,13 +270,18 @@ const PostFeed = () => {
             await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
 
+            // Refetch posts to update UI
             fetchPosts();
         } catch (error) {
             console.error('Error deleting post:', error);
             alert('Failed to delete post');
         }
     };
+
 
     const toggleComments = (postId) => {
         setCommentsVisible(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -262,7 +290,7 @@ const PostFeed = () => {
     return (
         <div className="post-feed-container">
             <h2>Post Feed</h2>
-
+            <button onClick={navigateToYourProfile}>Your Profile</button>
             {error && <p className="error-message">{error}</p>}
 
             <div className="post-feed">
@@ -285,7 +313,7 @@ const PostFeed = () => {
                                 </div>
 
                                 <div className="post-feed-body">
-                                <div className="post-feed-actions">
+                                    <div className="post-feed-actions">
                                         <button onClick={() => handleLike(post.id)} className="like-button">
                                             <LikeOutlined/> {post.likeCount}
                                         </button>
