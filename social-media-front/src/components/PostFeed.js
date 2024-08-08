@@ -19,22 +19,35 @@ const PostFeed = () => {
 
     const navigate = useNavigate();
 
+
+
+    const navigateToYourProfile = () => {
+        const token = Cookies.get('token');
+        if (token) {
+            try {
+                const decodedToken = JSON.parse(atob(token.split('.')[1]));
+                const userNameFromToken = decodedToken.email;
+                console.log('decodedToken', decodedToken);
+                navigate(`/user/${userNameFromToken}`); // Programmatically navigate to user profile
+            } catch (error) {
+                console.error("Error decoding token", error);
+                // Handle the error as needed
+            }
+        } else {
+            console.error("Token not found");
+            // Handle the case where the token is not available
+        }
+    };
+
     const navigateToUserProfile = (userName) => {
         navigate(`/user/${userName}`); // Programmatically navigate to user profile
     };
 
+
     const navigateToLogin = () => {
-        navigate(`/login`); // Programmatically navigate to user profile
+        navigate(`/home`); // Programmatically navigate to user profile
     };
 
-    const navigateToYourProfile = () => {
-        if (userName) {
-            console.log('Navigating to profile:', userName); // Add debug log
-            navigate(`/user/${userName}`);
-        } else {
-            console.error('Username not found');
-        }
-    };
 
 
     const handleCancel = () => {
@@ -70,6 +83,7 @@ const PostFeed = () => {
             const decodedToken = JSON.parse(atob(token.split('.')[1]));
             const userIdFromToken = decodedToken.userId;
             const userNameFromToken = decodedToken.userName;
+
             console.log('Decoded userId from token:', userIdFromToken); // Log userId
             setUserId(userIdFromToken);
             setUserName(userNameFromToken);
@@ -85,11 +99,30 @@ const PostFeed = () => {
                             axios.get('http://localhost:8080/api/likes/dislikeCount', { params: { postId: post.id }, headers: { Authorization: `Bearer ${token}` } })
                         ]);
 
+                        let profilePictureUrl = null;
+                        try {
+                            const profileImageResponse = await axios.get(`http://localhost:8080/api/user-images/user/${post.userId}`, {
+                                headers: { Authorization: `Bearer ${token}` },
+                                responseType: 'arraybuffer'
+                            });
+
+                            // Convert ArrayBuffer to Base64
+                            const base64String = btoa(
+                                new Uint8Array(profileImageResponse.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+                            );
+                            profilePictureUrl = `data:${profileImageResponse.headers['content-type']};base64,${base64String}`;
+                        } catch (imageError) {
+                            console.error('Error fetching profile picture:', imageError);
+                            // Handle error or use default image URL
+                            profilePictureUrl = null;
+                        }
+
                         return {
                             ...post,
                             postImage: imageUrl ? { url: imageUrl } : null,
                             likeCount: likesResponse.data || 0,
                             dislikeCount: dislikesResponse.data || 0,
+                            profilePictureUrl // Include profile picture URL in the post details
                         };
                     } catch (error) {
                         console.error('Error fetching post details:', error);
@@ -98,6 +131,7 @@ const PostFeed = () => {
                             postImage: null,
                             likeCount: 0,
                             dislikeCount: 0,
+                            profilePictureUrl: null // Handle case where profile picture is not available
                         };
                     }
                 }));
@@ -110,7 +144,7 @@ const PostFeed = () => {
             }
         } catch (error) {
             console.error('Error fetching posts:', error);
-            navigateToLogin()
+            navigateToLogin();
             setError('Error fetching posts');
         }
     }, []);
@@ -120,6 +154,7 @@ const PostFeed = () => {
         const intervalId = setInterval(fetchPosts, 30000);
         return () => clearInterval(intervalId);
     }, [fetchPosts]);
+
 
     useEffect(() => {
         const token = Cookies.get('token');
@@ -198,6 +233,30 @@ const PostFeed = () => {
 
         console.error('Invalid image data:', imageData);
         return null;
+    };
+
+    const renderProfilePicture = (profilePictureUrl) => {
+        const defaultProfilePictureUrl = 'https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg';
+
+        return (
+            <img
+                src={profilePictureUrl || defaultProfilePictureUrl}
+                alt="Profile"
+                onError={(e) => {
+                    console.error('Failed to load profile picture:', e.target.src);
+                    e.target.src = defaultProfilePictureUrl;
+                    e.target.alt = 'Profile picture failed to load';
+                }}
+                style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    marginRight: '10px',
+                    border: '1px solid rgba(0, 0, 0, 0.2)'
+                }}
+            />
+        );
     };
 
     const handleNewPost = useCallback(async (newPost) => {
@@ -298,18 +357,33 @@ const PostFeed = () => {
                     <p>No posts found.</p>
                 ) : (
                     posts.map(post => (
-                        <div className="post-feed-card" key={post.id} style={{ marginBottom: '20px' }}>
+                        <div className="post-feed-card" key={post.id} style={{marginBottom: '20px'}}>
 
                             <div className="post-feed-content">
                                 <div className="post-feed-header">
-                                    <div className="username" onClick={() => navigateToUserProfile(post.userName)}>
-                                        <h3>{post.userName}</h3>
+                                    <div className="post-feed-title">
+
+                                        <div className="profile-picture"
+                                             onClick={() => navigateToUserProfile(post.userName)}>
+                                            {renderProfilePicture(post.profilePictureUrl)}
+                                        </div>
+
+                                        <div className="username" onClick={() => navigateToUserProfile(post.userName)}>
+                                            <h3>{post.userName}</h3>
+                                        </div>
+
+                                        <FollowButton
+                                            className="follow-button"
+                                            userIdToFollow={post.userId}
+                                        />
                                     </div>
-                                    <p>UserId: {post.userId}</p> {/* Add logging */}
-                                    <FollowButton userIdToFollow={post.userId}/>
-                                    <p>{post.description}</p>
-                                    {post.postImage && renderImage(post.postImage)}
-                                    <p>{formatDate(post.createdAt)}</p>
+
+                                    <div className="post-body">
+                                        <p>{post.description}</p>
+                                        {post.postImage && renderImage(post.postImage)}
+                                        <p>{formatDate(post.createdAt)}</p>
+                                    </div>
+
                                 </div>
 
                                 <div className="post-feed-body">
@@ -332,7 +406,7 @@ const PostFeed = () => {
 
                                     {commentsVisible[post.id] && (
                                         <div className="comments-section">
-                                            <CommentList postId={post.id} />
+                                            <CommentList postId={post.id}/>
                                         </div>
                                     )}
                                 </div>
@@ -342,13 +416,16 @@ const PostFeed = () => {
                 )}
             </div>
 
-            {isFormOpen ? (
-                <PostForm onPostCreated={handleNewPost} onCancel={handleCancel} />
-            ) : (
-                <button className="open-form-button" onClick={() => setIsFormOpen(true)}>
-                    <PlusCircleOutlined /> Add New Post
-                </button>
-            )}
+            <div className="glass-container">
+                {isFormOpen ? (
+                    <PostForm onPostCreated={handleNewPost} onCancel={handleCancel}/>
+                ) : (
+                    <button className="open-form-button" onClick={() => setIsFormOpen(true)}>
+                        <PlusCircleOutlined/>
+                    </button>
+                )}
+            </div>
+
         </div>
     );
 };

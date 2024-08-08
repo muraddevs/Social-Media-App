@@ -4,11 +4,13 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: rgba(241, 241, 241, 0.8);
-    border-top: 1px solid rgba(221, 221, 221, 0.8);
+    background-color: rgba(241, 241, 241, 0.9); /* Slightly darker for better visibility */
+    border-top: 1px solid rgba(221, 221, 221, 0.9);
     padding: 10px;
     box-shadow: 0px -2px 5px rgba(0,0,0,0.1);
     z-index: 1000;
+    display: flex;
+    justify-content: center; /* Center the contents horizontally */
 }
 
 /* Styling for the bottom bar inside the container */
@@ -16,6 +18,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    max-width: 1200px; /* Limit the width of the bottom bar */
+    width: 100%;
 }
 
 /* Styling for the post button in the bottom bar */
@@ -23,6 +27,10 @@
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
 }
 
 /* Main post feed container with flex properties */
@@ -32,43 +40,51 @@
     justify-content: center;
     flex-direction: column;
     flex-wrap: wrap;
-    padding-bottom: 100px; /* Adjust space for the sticky bar-container and form */
+    padding-bottom: 70px; /* Adjust space for the sticky bar-container and form */
+    width: 100%; /* Ensure full width */
 }
 
 /* Styling for individual post cards */
 .post-feed-card {
-    border: 1px solid #000000;
-    width: 95%;
-    margin: 5px;
+    border: 1px solid #ddd;
+    width: calc(100% - 20px); /* Full width with margin */
+    max-width: 800px; /* Limit max width */
+    margin: 10px auto; /* Center align and provide margin */
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     position: relative; /* Needed for absolute positioning of timestamp */
+    border-radius: 8px; /* Rounded corners */
+    overflow: hidden; /* Ensure no content overflows */
 }
 
 /* Container for images inside the post card */
 .images-container {
-    flex: 1; /* Allows the image container to take up space and push timestamp down */
+    width: 100%; /* Full width of the post card */
     display: flex;
-    flex-wrap: wrap;
+    justify-content: center; /* Center images */
+    flex-wrap: wrap; /* Allow wrapping for multiple images */
+    overflow: hidden; /* Ensure images don't overflow */
 }
 
 /* Container for username */
 .username-container {
     display: flex;
-    align-items: flex-start;
-    justify-content: left;
-    flex-wrap: wrap;
+    align-items: center; /* Center vertically */
+    margin: 10px;
+    padding: 0 10px;
 }
 
 /* Styling for the username text */
 .user-name {
-    margin: 10px;
+    margin-left: 10px;
+    font-weight: bold;
 }
 
 /* Styling for the post description */
 .post-description {
     margin: 10px;
+    padding: 0 10px;
 }
 
 /* Styling for the timestamp of the post */
@@ -76,12 +92,13 @@
     margin: 10px;
     font-size: 14px;
     font-weight: lighter;
+    color: #666; /* Slightly darker color for better readability */
 }
 
 /* Styling for the PostForm container */
 .post-form-container {
     position: fixed;
-    bottom: 60px; /* Adjust based on the height of the bottom bar */
+    bottom: 70px; /* Adjust based on the height of the bottom bar */
     right: 10px;
     background-color: #ffffff;
     border: 1px solid #ccc;
@@ -89,8 +106,45 @@
     padding: 20px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     z-index: 1000; /* Ensure form is on top of other content */
+    width: 300px; /* Fixed width */
+    max-width: 100%; /* Ensure responsiveness */
 }
 
+.post-feed-title {
+    display: flex;
+    align-items: center; /* Align items vertically in the center */
+    justify-content: space-between; /* Distribute space between items */
+    margin: 10px;
+}
+
+.profile-picture {
+    margin-left: 10px;
+    overflow: hidden; /* Hide any overflow */
+    margin-right: 10px; /* Space between the picture and username */
+    cursor: pointer; /* Pointer cursor for clickable picture */
+}
+
+/* Username styling */
+.username {
+    flex: 1; /* Allows the username to take up remaining space */
+    display: flex;
+    align-items: center; /* Align the username in the center vertically */
+}
+
+
+.follow-button {
+
+    margin-left: 10px;
+}
+
+.post-body{
+    margin-left: 25px;
+}
+
+.post-feed-actions{
+    margin-left: 25px;
+    margin-bottom: 15px;
+}
 /* Styling for the open form button */
 .open-form-button {
     position: fixed;
@@ -104,7 +158,22 @@
     font-size: 24px;
     cursor: pointer;
     z-index: 1000; /* Ensure button is on top */
+    width: 50px; /* Fixed size */
+    height: 50px; /* Fixed size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.glass-container{
+    position: fixed;
+    width: 100%;
+    border: solid 1px #000000;
+    background-color: rgba(0, 0, 0, 0.21);
+    align-content: center;
+    align-items: center;
+}
+
 
 /* Styling for the form button when it's clicked */
 .open-form-button:focus {
@@ -120,6 +189,7 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 16px; /* Ensure readability */
 }
 
 /* Styling for the post button inside the PostForm */
@@ -131,4 +201,11 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 16px; /* Ensure readability */
 }
+
+.comments-section{
+    margin-left: 25px;
+    margin-bottom: 10px;
+}
+
