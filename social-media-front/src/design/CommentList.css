@@ -1,0 +1,33 @@
+.comment-title{
+    display: flex;
+    align-items: flex-start;
+    justify-content: start;
+    margin: 10px;
+}
+
+.comment-item{
+    margin: 20px 5px 20px 5px;
+    border: 1px solid rgba(221, 221, 221, 0.9);
+    border-radius: 5px;
+}
+
+.comment-username{
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.comment-description{
+    display: flex;
+    align-items: flex-start;
+    justify-content: start;
+    margin: 10px 45px 20px 45px;
+    font-size: 20px;
+}
+
+.comment-date{
+    color: gray;
+    font-size: 12px;
+    margin-bottom: -15px;
+    margin-left: 5px;
+}

@@ -150,7 +150,7 @@
 }
 
 .post-image {
-    max-width: 150px; /* Adjust width based on your design */
+    /* Adjust width based on your design */
     height: auto; /* Maintain aspect ratio */
     border-radius: 4px; /* Optional: add rounded corners */
 }

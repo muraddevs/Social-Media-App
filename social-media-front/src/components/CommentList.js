@@ -1,14 +1,43 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import CommentForm from './CommentForm'; // Import CommentForm component
+import CommentForm from './CommentForm';
+import RenderPFP from "./RenderPFP";
+import '../design/CommentList.css';
+
+const fetchPfp = async (userId) => {
+    let profilePictureUrl = null;
+    const token = Cookies.get('token');
+
+    if (!token) {
+        console.error('Token not found');
+        return profilePictureUrl; // Return null if no token is found
+    }
+
+    try {
+        const profileImageResponse = await axios.get(`http://localhost:8080/api/user-images/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: 'arraybuffer'
+        });
+
+        // Convert ArrayBuffer to Base64
+        const base64String = btoa(
+            new Uint8Array(profileImageResponse.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        profilePictureUrl = `data:${profileImageResponse.headers['content-type']};base64,${base64String}`;
+    } catch (imageError) {
+        console.error('Error fetching profile picture:', imageError);
+        profilePictureUrl = null; // Handle error or use default image URL
+    }
+
+    return profilePictureUrl;
+};
 
 const CommentList = ({ postId }) => {
     const [comments, setComments] = useState([]);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Fetch comments function
     const fetchComments = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -23,8 +52,16 @@ const CommentList = ({ postId }) => {
                 }
             });
 
-            console.log('Fetched comments:', response.data);
-            setComments(response.data);
+            const commentsData = Array.isArray(response.data) ? response.data : [];
+
+            const commentsWithPfp = await Promise.all(
+                commentsData.map(async (comment) => {
+                    const profilePictureUrl = await fetchPfp(comment.user.id);
+                    return { ...comment, user: { ...comment.user, profilePictureUrl } };
+                })
+            );
+
+            setComments(commentsWithPfp);
             setError(null);
         } catch (error) {
             console.error('Error fetching comments:', error);
@@ -34,11 +71,11 @@ const CommentList = ({ postId }) => {
         }
     }, [postId]);
 
+
     useEffect(() => {
         fetchComments(); // Fetch comments when component mounts or postId changes
     }, [fetchComments]);
 
-    // Function to handle adding a new comment
     const handleNewComment = async (newComment) => {
         // Simulate adding comment with a slight delay
         setTimeout(async () => {
@@ -66,9 +103,13 @@ const CommentList = ({ postId }) => {
             ) : (
                 comments.map((comment, index) => (
                     <div key={comment.id || index} className="comment-item">
-                        <br/>
-                        <div className="comment-username">
-                            {comment.user ? comment.user.userName : 'Could not get username'}
+                        <div className="comment-title">
+                            <div className="comment-pfp">
+                                <RenderPFP profilePictureUrl={comment.user.profilePictureUrl} width={25} height={25} />
+                            </div>
+                            <div className="comment-username">
+                                {comment.user ? comment.user.userName : 'Could not get username'}
+                            </div>
                         </div>
                         <div className="comment-description">
                             {comment.description || 'No description available'}
@@ -76,7 +117,7 @@ const CommentList = ({ postId }) => {
                         <div className="comment-date">
                             {comment.createdDate ? formatDate(comment.createdDate) : 'Date not available'}
                         </div>
-                        <br/>
+                        <br />
                     </div>
                 ))
             )}

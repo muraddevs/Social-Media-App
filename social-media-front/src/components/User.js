@@ -5,7 +5,8 @@ import Cookies from 'js-cookie';
 import FollowButton from './FollowButton';
 import CommentList from './CommentList';
 import ProfilePicUpload from './ProfilePicUpload';
-import { jwtDecode } from 'jwt-decode'; // Correct import
+import { jwtDecode } from 'jwt-decode';
+import RenderPFP from "./RenderPFP"; // Correct import
 
 const User = () => {
     const { username } = useParams();
@@ -218,27 +219,6 @@ const User = () => {
         return <img src={defaultImageUrl} alt="Default" style={{ width: 400, height: 400, objectFit: 'cover' }} />;
     };
 
-    const renderProfilePicture = (profilePictureUrl) => {
-        const defaultProfilePictureUrl = 'https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg';
-
-        return (
-            <img
-                src={profilePictureUrl || defaultProfilePictureUrl}
-                alt="Profile"
-                onError={(e) => {
-                    console.error('Failed to load profile picture:', e.target.src);
-                    e.target.src = defaultProfilePictureUrl;
-                    e.target.alt = 'Profile picture failed to load';
-                }}
-                style={{
-                    width: 100,
-                    height: 100,
-                    borderRadius: '50%',
-                    objectFit: 'cover'
-                }}
-            />
-        );
-    };
 
     if (error) {
         return <div>{error}</div>;
@@ -250,7 +230,7 @@ const User = () => {
 
     return (
         <div className="user-profile-container">
-            {renderProfilePicture(userDetails.profilePictureUrl)}
+            <RenderPFP profilePictureUrl={userDetails.profilePictureUrl} width={150} height={150} />
             <h1>{userDetails.userName}</h1>
             {userDetails.id === userId && <ProfilePicUpload onProfilePictureUploaded={fetchUserDetails} />}
             <p>Posts: {userDetails.posts.length}</p>

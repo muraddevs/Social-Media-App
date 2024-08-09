@@ -8,6 +8,7 @@ import { PlusCircleOutlined, LikeOutlined, DislikeOutlined, CommentOutlined } fr
 import CommentList from './CommentList';
 import FollowButton from './FollowButton';
 import { useNavigate } from 'react-router-dom';
+import RenderPFP from "./RenderPFP";
 
 const PostFeed = () => {
     const [posts, setPosts] = useState([]);
@@ -21,7 +22,7 @@ const PostFeed = () => {
 
 
 
-    const navigateToUserProfile = () => {
+    const navigateToYourProfile = () => {
         const token = Cookies.get('token');
         if (token) {
             try {
@@ -39,11 +40,7 @@ const PostFeed = () => {
         }
     };
 
-    const navigateToLogin = () => {
-        navigate(`/home`); // Programmatically navigate to user profile
-    };
-
-    const navigateToYourProfile = () => {
+    const navigateToUserProfile = (userName) => {
         if (userName) {
             console.log('Navigating to profile:', userName); // Add debug log
             navigate(`/user/${userName}`);
@@ -51,6 +48,11 @@ const PostFeed = () => {
             console.error('Username not found');
         }
     };
+
+    const navigateToLogin = () => {
+        navigate(`/home`); // Programmatically navigate to user profile
+    };
+
 
 
     const handleCancel = () => {
@@ -218,29 +220,7 @@ const PostFeed = () => {
 
 
 
-    const renderProfilePicture = (profilePictureUrl) => {
-        const defaultProfilePictureUrl = 'https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg';
 
-        return (
-            <img
-                src={profilePictureUrl || defaultProfilePictureUrl}
-                alt="Profile"
-                onError={(e) => {
-                    console.error('Failed to load profile picture:', e.target.src);
-                    e.target.src = defaultProfilePictureUrl;
-                    e.target.alt = 'Profile picture failed to load';
-                }}
-                style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    marginRight: '10px',
-                    border: '1px solid rgba(0, 0, 0, 0.2)'
-                }}
-            />
-        );
-    };
 
     const handleNewPost = useCallback(async (newPost) => {
         try {
@@ -330,7 +310,7 @@ const PostFeed = () => {
     return (
         <div className="post-feed-container">
             <h2>Post Feed</h2>
-            <button onClick={navigateToUserProfile}>Your Profile</button>
+            <button onClick={navigateToYourProfile}>Your Profile</button>
             {error && <p className="error-message">{error}</p>}
 
             <div className="post-feed">
@@ -346,7 +326,7 @@ const PostFeed = () => {
 
                                         <div className="profile-picture"
                                              onClick={() => navigateToUserProfile(post.userName)}>
-                                            {renderProfilePicture(post.profilePictureUrl)}
+                                            <RenderPFP profilePictureUrl={post.profilePictureUrl} width={50} height={50} />
                                         </div>
 
                                         <div className="username" onClick={() => navigateToUserProfile(post.userName)}>
