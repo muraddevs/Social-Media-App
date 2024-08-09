@@ -17,8 +17,10 @@ const PostFeed = () => {
     const [userId, setUserId] = useState(null);
     const [userName, setUserName] = useState(null);
     const [commentsVisible, setCommentsVisible] = useState({});
+    const [userProfilePictureUrl, setUserProfilePictureUrl] = useState(null);
 
     const navigate = useNavigate();
+
 
 
 
@@ -76,6 +78,27 @@ const PostFeed = () => {
         }
     };
 
+    const fetchUserProfilePicture = useCallback(async (userId) => {
+        try {
+            const token = Cookies.get('token');
+            if (!token) throw new Error('Token not found');
+
+            const response = await axios.get(`http://localhost:8080/api/user-images/user/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                responseType: 'arraybuffer'
+            });
+
+            // Convert ArrayBuffer to Base64
+            const base64String = btoa(
+                new Uint8Array(response.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+            );
+            setUserProfilePictureUrl(`data:${response.headers['content-type']};base64,${base64String}`);
+        } catch (error) {
+            console.error('Error fetching user profile picture:', error);
+            setUserProfilePictureUrl(null); // Use default or null if error
+        }
+    }, []);
+
     const fetchPosts = useCallback(async () => {
         try {
             const token = Cookies.get('token');
@@ -87,12 +110,12 @@ const PostFeed = () => {
 
             const decodedToken = JSON.parse(atob(token.split('.')[1]));
             const userIdFromToken = decodedToken.userId;
-            const userNameFromToken = decodedToken.userName;
+            const userNameFromToken = decodedToken.email;
 
             console.log('Decoded userId from token:', userIdFromToken); // Log userId
             setUserId(userIdFromToken);
             setUserName(userNameFromToken);
-
+            fetchUserProfilePicture(userIdFromToken);
             if (Array.isArray(response.data)) {
                 const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -175,6 +198,7 @@ const PostFeed = () => {
             console.error('Token not found');
         }
     }, []);
+
 
 
     const formatDate = (dateString) => {
@@ -310,7 +334,10 @@ const PostFeed = () => {
     return (
         <div className="post-feed-container">
             <h2>Post Feed</h2>
-            <button onClick={navigateToYourProfile}>Your Profile</button>
+            <div onClick={navigateToYourProfile}>
+                <RenderPFP profilePictureUrl={userProfilePictureUrl} width={80} height={80} />
+            </div>
+            <h1>{userName}</h1>
             {error && <p className="error-message">{error}</p>}
 
             <div className="post-feed">
