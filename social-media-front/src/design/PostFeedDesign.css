@@ -141,6 +141,20 @@
     margin-left: 25px;
 }
 
+.post-images-container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    flex-direction: row;
+    overflow: scroll;
+}
+
+.post-image {
+    max-width: 150px; /* Adjust width based on your design */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 4px; /* Optional: add rounded corners */
+}
+
 .post-feed-actions{
     margin-left: 25px;
     margin-bottom: 15px;

@@ -21,7 +21,7 @@ const PostFeed = () => {
 
 
 
-    const navigateToYourProfile = () => {
+    const navigateToUserProfile = () => {
         const token = Cookies.get('token');
         if (token) {
             try {
@@ -39,15 +39,18 @@ const PostFeed = () => {
         }
     };
 
-    const navigateToUserProfile = (userName) => {
-        navigate(`/user/${userName}`); // Programmatically navigate to user profile
-    };
-
-
     const navigateToLogin = () => {
         navigate(`/home`); // Programmatically navigate to user profile
     };
 
+    const navigateToYourProfile = () => {
+        if (userName) {
+            console.log('Navigating to profile:', userName); // Add debug log
+            navigate(`/user/${userName}`);
+        } else {
+            console.error('Username not found');
+        }
+    };
 
 
     const handleCancel = () => {
@@ -186,54 +189,34 @@ const PostFeed = () => {
         }
     };
 
-    const renderImage = (imageData) => {
-        console.log('Image Data:', imageData); // Log image data for debugging
-
-        if (typeof imageData === 'object' && Array.isArray(imageData.url) && imageData.url.length > 0) {
-            const image = imageData.url[0];
-
-            if (image.data) {
-                return (
-                    <img
-                        src={`data:${image.type};base64,${image.data}`}
-                        alt="Post"
-                        onError={(e) => {
-                            console.error('Failed to load image:', e.target.src);
-                            e.target.src = 'default-image-url.jpg';
-                            e.target.alt = 'Image failed to load';
-                        }}
-                        style={{
-                            width: 400,
-                            height: 400,
-                            objectFit: 'cover'
-                        }}
-                    />
-                );
-            }
-
-            if (image.url) {
-                return (
-                    <img
-                        src={image.url}
-                        alt="Post"
-                        onError={(e) => {
-                            console.error('Failed to load image:', e.target.src);
-                            e.target.src = 'default-image-url.jpg';
-                            e.target.alt = 'Image failed to load';
-                        }}
-                        style={{
-                            width: 400,
-                            height: 400,
-                            objectFit: 'cover'
-                        }}
-                    />
-                );
-            }
+    const renderImage = (imagesData) => {
+        // Ensure that imagesData is an object with a 'url' property that is an array
+        if (imagesData && Array.isArray(imagesData.url)) {
+            return imagesData.url.map((image, index) => (
+                <img
+                    key={index}
+                    src={`data:${image.type};base64,${image.data}`}
+                    alt="Post"
+                    onError={(e) => {
+                        console.error('Failed to load image:', e.target.src);
+                        e.target.src = 'default-image-url.jpg';
+                        e.target.alt = 'Image failed to load';
+                    }}
+                    style={{
+                        width: 400,
+                        height: 400,
+                        objectFit: 'cover',
+                        margin: '10px',
+                    }}
+                />
+            ));
         }
 
-        console.error('Invalid image data:', imageData);
+        console.error('Expected an array, but received:', imagesData);
         return null;
     };
+
+
 
     const renderProfilePicture = (profilePictureUrl) => {
         const defaultProfilePictureUrl = 'https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg';
@@ -329,9 +312,6 @@ const PostFeed = () => {
             await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
 
             // Refetch posts to update UI
             fetchPosts();
@@ -342,6 +322,7 @@ const PostFeed = () => {
     };
 
 
+
     const toggleComments = (postId) => {
         setCommentsVisible(prev => ({ ...prev, [postId]: !prev[postId] }));
     };
@@ -349,7 +330,7 @@ const PostFeed = () => {
     return (
         <div className="post-feed-container">
             <h2>Post Feed</h2>
-            <button onClick={navigateToYourProfile}>Your Profile</button>
+            <button onClick={navigateToUserProfile}>Your Profile</button>
             {error && <p className="error-message">{error}</p>}
 
             <div className="post-feed">
@@ -380,7 +361,9 @@ const PostFeed = () => {
 
                                     <div className="post-body">
                                         <p>{post.description}</p>
-                                        {post.postImage && renderImage(post.postImage)}
+                                        <div className="post-images-container">
+                                            {post.postImage && renderImage(post.postImage)}
+                                        </div>
                                         <p>{formatDate(post.createdAt)}</p>
                                     </div>
 

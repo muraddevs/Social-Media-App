@@ -6,6 +6,8 @@ import CIC.social_media_api.repository.PostImageRepository;
 import CIC.social_media_api.repository.PostRepository;
 import CIC.social_media_api.repository.CommentRepository;
 import CIC.social_media_api.repository.LikeRepository; // Import LikeRepository
+import jakarta.persistence.EntityManager;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,9 @@ import java.util.List;
 @Service
 @Transactional
 public class PostService {
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private PostRepository postRepository;
@@ -49,32 +54,51 @@ public class PostService {
     public void deletePost(Long postId) {
         System.out.println("Attempting to delete post with id: " + postId);
 
-        // Fetch the post
+        // Fetch the post with related entities initialized
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id " + postId));
 
-        // Log associated entities (for debugging purposes)
-        System.out.println("Deleting post with comments: " + post.getComments());
-        System.out.println("Deleting post with likes: " + post.getLikes());
-        System.out.println("Deleting post with images: " + post.getPostImages());
+        // Initialize collections to avoid lazy loading issues
+        Hibernate.initialize(post.getComments());
+        Hibernate.initialize(post.getLikes());
+        Hibernate.initialize(post.getPostImages());
 
-        // Remove associated likes and comments
-        likeRepository.deleteByPostId(postId);
-        commentRepository.deleteByPostId(postId);
+        try {
+            // Step 1: Delete Post's Images
+            if (!post.getPostImages().isEmpty()) {
+                System.out.println("Deleting post images: " + post.getPostImages().size());
+                postImageRepository.deleteAll(post.getPostImages());
+            }
 
-        // Remove images related to the post
-        postImageRepository.deleteByPostId(postId);
+            // Step 2: Delete Post's Likes
+            if (!post.getLikes().isEmpty()) {
+                System.out.println("Deleting post likes: " + post.getLikes().size());
+                likeRepository.deleteAll(post.getLikes());
+            }
 
-        // Remove the post itself
-        postRepository.delete(post);
+            // Step 3: Delete Post's Comments
+            if (!post.getComments().isEmpty()) {
+                System.out.println("Deleting post comments: " + post.getComments().size());
+                commentRepository.deleteAll(post.getComments());
+            }
 
-        // Verify deletion (for debugging purposes)
-        if (!postRepository.existsById(postId)) {
-            System.out.println("Post deleted successfully");
-        } else {
-            System.out.println("Post still exists after deletion");
+            // Step 4: Delete the Post itself
+            System.out.println("Deleting the post with id: " + postId);
+            postRepository.delete(post);
+
+            // Verify deletion (for debugging purposes)
+            if (!postRepository.existsById(postId)) {
+                System.out.println("Post deleted successfully");
+            } else {
+                System.out.println("Post still exists after deletion");
+            }
+        } catch (Exception e) {
+            System.err.println("Error occurred during post deletion: " + e.getMessage());
+            throw new RuntimeException("Failed to delete post with id " + postId);
         }
     }
+
+
 
 
 

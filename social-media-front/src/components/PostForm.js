@@ -5,59 +5,50 @@ import {jwtDecode} from 'jwt-decode'; // Correct import statement for jwt-decode
 
 const PostForm = ({ onPostCreated, onCancel }) => {
     const [description, setDescription] = useState('');
-    const [file, setFile] = useState(null);
-    const [error, setError] = useState(''); // State to manage error messages
+    const [files, setFiles] = useState([]); // Allow multiple files
+    const [error, setError] = useState('');
 
     const handlePost = async (event) => {
-        event.preventDefault(); // Prevent default form submission behavior
+        event.preventDefault();
 
         const token = Cookies.get('token');
         if (!token) {
             setError('Token not found. Please log in.');
-            return; // Handle error or redirect to login
+            return;
         }
 
         try {
-            const decodedToken = jwtDecode(token); // Decode the JWT token
-            console.log('Decoded token:', decodedToken); // Log decoded token for verification
+            const decodedToken = jwtDecode(token);
 
             const formData = new FormData();
             formData.append('description', description);
-            if (file) {
-                formData.append('file', file); // Append file directly, as binary
-            }
+            files.forEach((file) => formData.append('files', file)); // Append multiple files
 
             const response = await axios.post('http://localhost:8080/api/posts', formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`, // Use the token directly for authorization
-                    'Content-Type': 'multipart/form-data' // Ensure correct content type
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
                 }
             });
 
-            console.log('Post created:', response.data); // Log the response data
             alert('Post created successfully!');
-
-            // Clear form inputs after successful creation
             setDescription('');
-            setFile(null);
+            setFiles([]);
             setError('');
-
-            // Notify parent component to refresh the feed with new post data
             if (onPostCreated) {
                 onPostCreated(response.data);
             }
         } catch (error) {
             console.error('Error creating post:', error);
-            // Extract and display error message if available
             const errorMessage = error.response?.data?.message || 'Failed to create post. Please try again later.';
-            setError(errorMessage); // Update error message
+            setError(errorMessage);
         }
     };
 
     return (
         <div className="post-form-container">
             <h2>Create Post</h2>
-            {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>} {/* Display error messages */}
+            {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
             <form onSubmit={handlePost}>
                 <textarea
                     placeholder="Description"
@@ -67,21 +58,15 @@ const PostForm = ({ onPostCreated, onCancel }) => {
                 />
                 <input
                     type="file"
-                    onChange={(e) => setFile(e.target.files[0])}
+                    multiple
+                    onChange={(e) => setFiles([...e.target.files].slice(0, 5))} // Limit to 5 files
                     style={{ marginBottom: '10px' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <button
-                        type="submit"
-                        className="submit-button"
-                    >
+                    <button type="submit" className="submit-button">
                         Post
                     </button>
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="cancel-button"
-                    >
+                    <button type="button" onClick={onCancel} className="cancel-button">
                         Cancel
                     </button>
                 </div>

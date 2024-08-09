@@ -62,6 +62,25 @@ public class UserImageController {
         }
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<byte[]> getUserImageById(@PathVariable Long id) {
+        try {
+            Optional<UserImage> optionalUserImage = Optional.ofNullable(userImageService.getUserImageById(id));
+            if (!optionalUserImage.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            UserImage userImage = optionalUserImage.get();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_TYPE, userImage.getType());
+
+            return ResponseEntity.ok().headers(headers).body(userImage.getData());
+        } catch (Exception e) {
+            logger.error("Error retrieving user image with ID {}: ", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @PostMapping("/upload")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> uploadUserImage(@RequestParam("file") MultipartFile file, @RequestParam("userId") Long userId) {
@@ -81,16 +100,8 @@ public class UserImageController {
                 return ResponseEntity.badRequest().body("File size exceeds the limit of 5MB.");
             }
 
-            // Check if the user already has a profile picture
-            Optional<UserImage> existingProfilePicture = userImageService.getProfileImageByUserId(userId);
-            if (existingProfilePicture.isPresent()) {
-                // Delete the existing profile picture
-                userImageService.deleteUserImageById(existingProfilePicture.get().getId());
-            }
-
-            // Store the new profile picture
             UserImage userImage = userImageService.storeImage(file, userId);
-            return ResponseEntity.ok("Profile picture uploaded successfully: " + userImage.getId());
+            return ResponseEntity.ok("Image uploaded successfully: " + userImage.getId());
         } catch (IOException e) {
             logger.error("Error uploading image for user ID {}: ", userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading image: " + e.getMessage());
@@ -100,26 +111,19 @@ public class UserImageController {
         }
     }
 
-    @DeleteMapping("/delete/{userId}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> deleteUserProfileImage(@PathVariable Long userId) {
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteUserImage(@PathVariable Long id) {
         try {
-            // Check if the user exists
-            if (userService.getUserById(userId).isEmpty()) {
-                return ResponseEntity.badRequest().body("User not found with ID: " + userId);
-            }
-
-            // Delete the user's profile picture if it exists
-            Optional<UserImage> existingProfilePicture = userImageService.getProfileImageByUserId(userId);
-            if (existingProfilePicture.isPresent()) {
-                userImageService.deleteUserImageById(existingProfilePicture.get().getId());
-                return ResponseEntity.ok("Profile picture deleted successfully");
+            boolean deleted = userImageService.deleteUserImageById(id);
+            if (deleted) {
+                return ResponseEntity.ok("Image deleted successfully");
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profile picture not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
             }
         } catch (Exception e) {
-            logger.error("Error deleting profile image for user ID {}: ", userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting profile picture: " + e.getMessage());
+            logger.error("Error deleting user image with ID {}: ", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting image: " + e.getMessage());
         }
     }
 }

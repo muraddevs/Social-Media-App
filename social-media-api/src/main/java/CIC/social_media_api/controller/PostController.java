@@ -63,9 +63,10 @@ public class PostController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<PostResponse> createPost(@RequestParam(value = "description", required = false) String description,
-                                                   @RequestParam(value = "file", required = false) MultipartFile file,
-                                                   Authentication authentication) {
+    public ResponseEntity<PostResponse> createPost(
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            Authentication authentication) {
         try {
             Optional<User> optionalUser = userService.findByUserName(authentication.getName());
 
@@ -74,34 +75,20 @@ public class PostController {
             }
 
             User user = optionalUser.get();
-            Post post = new Post();
-            post.setUser(user);
-            post.setDescription(description);
-            post.setCreatedAt(LocalDateTime.now());
+            Post post = new Post(description, user);
 
-            // Save the post first to generate the ID
             Post createdPost = postService.createPost(post);
 
-            // If there's an image, save it and associate it with the post
-            if (file != null && !file.isEmpty()) {
-                try {
-                    PostImage postImage = new PostImage();
-                    postImage.setName(file.getOriginalFilename());
-                    postImage.setType(file.getContentType());
-                    postImage.setData(file.getBytes());
-                    postImage.setPost(createdPost); // Associate with the saved post
-                    postImageService.createPostImage(postImage);
-
-                    // Update the post with the new image
-                    createdPost.getPostImages().add(postImage);
-                    postService.updatePost(createdPost);
-                } catch (IOException e) {
-                    logger.error("Error storing image for post ID {}: ", createdPost.getId(), e);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                } catch (IllegalArgumentException e) {
-                    logger.error("Invalid argument error while storing image for post ID {}: ", createdPost.getId(), e);
-                    return ResponseEntity.badRequest().build();
+            if (files != null && !files.isEmpty()) {
+                if (files.size() > 5) {
+                    return ResponseEntity.badRequest().body(null); // Limit the number of images
                 }
+
+                for (MultipartFile file : files) {
+                    PostImage postImage = postImageService.storeImage(file, createdPost.getId());
+                    createdPost.addPostImage(postImage); // Associate images with the post
+                }
+                postService.updatePost(createdPost);
             }
 
             return ResponseEntity.status(HttpStatus.CREATED).body(convertToPostResponse(createdPost));
