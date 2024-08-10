@@ -8,6 +8,7 @@ import CIC.social_media_api.service.CommentService;
 import CIC.social_media_api.service.PostService;
 import CIC.social_media_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -80,6 +81,20 @@ public class CommentController {
         }
         return ResponseEntity.ok(commentsDTO);
     }
+
+    @GetMapping("/count/{postId}")
+    public ResponseEntity<?> getCommentCount(@PathVariable Long postId) {
+        try {
+            long count = commentService.countCommentsByPostId(postId);
+            return ResponseEntity.ok(count);
+        } catch (Exception e) {
+            // Log the error (optional)
+            e.printStackTrace();
+            // Return a 500 Internal Server Error response
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching comment count");
+        }
+    }
+
 
     // Delete a comment by ID
     @DeleteMapping("/{id}")

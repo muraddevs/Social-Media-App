@@ -25,9 +25,33 @@
     font-size: 20px;
 }
 
-.comment-date{
+.comment-date {
     color: gray;
     font-size: 12px;
-    margin-bottom: -15px;
-    margin-left: 5px;
+    text-align: right;
 }
+
+.comment.activity{
+    display: flex;
+    align-items: center;
+}
+
+.comment-activity > * {
+    margin-right: 10px;
+}
+
+.comment-activity > *:last-child {
+    margin-right: 0;
+}
+
+.comment-footer {
+    display: flex;
+    justify-content: space-between; /* Space out the children elements */
+    align-items: center; /* Vertically center the items */
+    padding: 5px 0; /* Optional: Add some padding for spacing */
+    margin: 0 10px -15px 10px;
+
+}
+
+
+

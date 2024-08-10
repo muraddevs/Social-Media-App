@@ -42,21 +42,28 @@
     flex-wrap: wrap;
     padding-bottom: 70px; /* Adjust space for the sticky bar-container and form */
     width: 100%; /* Ensure full width */
+
 }
 
 /* Styling for individual post cards */
 .post-feed-card {
     border: 1px solid #ddd;
-    width: calc(100% - 20px); /* Full width with margin */
+    width: calc(100% - 40px); /* Adjusted width to provide more space */
     max-width: 800px; /* Limit max width */
-    margin: 10px auto; /* Center align and provide margin */
+    margin: 20px auto; /* Center align and provide more margin */
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     position: relative; /* Needed for absolute positioning of timestamp */
-    border-radius: 8px; /* Rounded corners */
+    border-radius: 12px; /* Slightly more rounded corners */
     overflow: hidden; /* Ensure no content overflows */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    background-color: #fff; /* Ensure background is white */
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+    padding: 15px; /* Add some padding for better spacing inside the card */
 }
+
 
 /* Container for images inside the post card */
 .images-container {
@@ -158,6 +165,10 @@
 .post-feed-actions{
     margin-left: 25px;
     margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: row;
 }
 /* Styling for the open form button */
 .open-form-button {
@@ -222,4 +233,12 @@
     margin-left: 25px;
     margin-bottom: 10px;
 }
+
+.comment-button{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-direction: row;
+}
+
 

@@ -5,6 +5,8 @@ import CommentForm from './CommentForm';
 import RenderPFP from "./RenderPFP";
 import '../design/CommentList.css';
 
+import { PlusCircleOutlined, LikeOutlined, DislikeOutlined, CommentOutlined } from '@ant-design/icons';
+
 const fetchPfp = async (userId) => {
     let profilePictureUrl = null;
     const token = Cookies.get('token');
@@ -34,7 +36,7 @@ const fetchPfp = async (userId) => {
 };
 
 const CommentList = ({ postId }) => {
-    const [comments, setComments] = useState([]);
+    const [comments, setComments] = useState([])
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -114,8 +116,15 @@ const CommentList = ({ postId }) => {
                         <div className="comment-description">
                             {comment.description || 'No description available'}
                         </div>
-                        <div className="comment-date">
-                            {comment.createdDate ? formatDate(comment.createdDate) : 'Date not available'}
+                        <div className="comment-footer">
+                            <div className="comment-activity">
+                                <button><LikeOutlined/> Like</button>
+                                <button><DislikeOutlined/> Dislike</button>
+                                <button><CommentOutlined/> Reply </button>
+                            </div>
+                            <div className="comment-date">
+                                {comment.createdDate ? formatDate(comment.createdDate) : 'Date not available'}
+                            </div>
                         </div>
                         <br />
                     </div>

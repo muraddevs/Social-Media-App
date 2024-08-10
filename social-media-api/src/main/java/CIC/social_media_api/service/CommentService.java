@@ -50,4 +50,8 @@ public class CommentService {
     public void deleteComment(Long id) {
         commentRepository.deleteById(id);
     }
+
+    public long countCommentsByPostId(Long postId) {
+        return commentRepository.countByPostId(postId);
+    }
 }

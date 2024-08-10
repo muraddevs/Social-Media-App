@@ -9,6 +9,8 @@ import CommentList from './CommentList';
 import FollowButton from './FollowButton';
 import { useNavigate } from 'react-router-dom';
 import RenderPFP from "./RenderPFP";
+import FetchCommentCount from "./FetchCommentCount";
+
 
 const PostFeed = () => {
     const [posts, setPosts] = useState([]);
@@ -18,6 +20,7 @@ const PostFeed = () => {
     const [userName, setUserName] = useState(null);
     const [commentsVisible, setCommentsVisible] = useState({});
     const [userProfilePictureUrl, setUserProfilePictureUrl] = useState(null);
+
 
     const navigate = useNavigate();
 
@@ -331,6 +334,8 @@ const PostFeed = () => {
         setCommentsVisible(prev => ({ ...prev, [postId]: !prev[postId] }));
     };
 
+
+
     return (
         <div className="post-feed-container">
             <h2>Post Feed</h2>
@@ -384,8 +389,10 @@ const PostFeed = () => {
                                         <button onClick={() => handleDislike(post.id)} className="dislike-button">
                                             <DislikeOutlined/> {post.dislikeCount}
                                         </button>
-                                        <button onClick={() => toggleComments(post.id)}>
-                                            <CommentOutlined/> Comments
+                                        <button
+                                            className="comment-button"
+                                            onClick={() => toggleComments(post.id)}>
+                                            <CommentOutlined/> <FetchCommentCount postId={post.id} />
                                         </button>
                                         {userId === post.userId && (
                                             <button onClick={() => handleDeletePost(post.id)} className="delete-button">
@@ -396,7 +403,7 @@ const PostFeed = () => {
 
                                     {commentsVisible[post.id] && (
                                         <div className="comments-section">
-                                            <CommentList postId={post.id}/>
+                                            <CommentList postId={post.id} />
                                         </div>
                                     )}
                                 </div>
