@@ -6,7 +6,7 @@ import Signup from './components/Signup';
 import Login from './components/Login';
 import Home from "./components/Home";
 import PostFeed from "./components/PostFeed";
-import PostForm from "./components/PostForm";
+
 import User from "./components/User";
 
 const App = () => (
@@ -17,7 +17,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/feed" element={<PostFeed />} />
-            <Route path="/create" element={<PostForm />} />
+
             <Route path="/user/:username" element={<User />} />
         </Routes>
     </Router>

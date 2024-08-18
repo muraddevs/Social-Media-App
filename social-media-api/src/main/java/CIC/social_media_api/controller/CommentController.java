@@ -82,15 +82,15 @@ public class CommentController {
         return ResponseEntity.ok(commentsDTO);
     }
 
-    @GetMapping("/count/{postId}")
+    @GetMapping("/comment/count/{postId}")
     public ResponseEntity<?> getCommentCount(@PathVariable Long postId) {
         try {
             long count = commentService.countCommentsByPostId(postId);
             return ResponseEntity.ok(count);
         } catch (Exception e) {
-            // Log the error (optional)
+            // Log the error
+            System.err.println("Error fetching comment count: " + e.getMessage());
             e.printStackTrace();
-            // Return a 500 Internal Server Error response
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching comment count");
         }
     }

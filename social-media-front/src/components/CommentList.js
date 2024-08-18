@@ -5,7 +5,7 @@ import CommentForm from './CommentForm';
 import RenderPFP from "./RenderPFP";
 import '../design/CommentList.css';
 
-import { PlusCircleOutlined, LikeOutlined, DislikeOutlined, CommentOutlined } from '@ant-design/icons';
+import { LikeOutlined, DislikeOutlined, CommentOutlined } from '@ant-design/icons';
 
 const fetchPfp = async (userId) => {
     let profilePictureUrl = null;

@@ -33,6 +33,41 @@ public class LikeController {
         return like != null ? ResponseEntity.ok(like) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/isLiked")
+    public ResponseEntity<Boolean> isPostLiked(@RequestParam Long postId, Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+        }
+
+        String username = authentication.getName();
+        Optional<User> optionalUser = userService.findByUserName(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+        }
+
+        User user = optionalUser.get();
+        boolean isLiked = likeService.hasLikedPost(user.getId(), postId);
+        return ResponseEntity.ok(isLiked);
+    }
+
+    @GetMapping("/isDisliked")
+    public ResponseEntity<Boolean> hasDisliked(@RequestParam Long postId, Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+        }
+
+        String username = authentication.getName();
+        Optional<User> optionalUser = userService.findByUserName(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+        }
+
+        User user = optionalUser.get();
+        boolean hasDisliked = likeService.hasDislikedPost(user.getId(), postId);
+        return ResponseEntity.ok(hasDisliked);
+    }
+
+
     @PostMapping("/upvote")
     public ResponseEntity<String> upVote(@RequestBody LikeRequest likeRequest, Authentication authentication) {
         if (authentication == null) {

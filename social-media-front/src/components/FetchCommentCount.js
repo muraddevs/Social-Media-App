@@ -15,7 +15,7 @@ const FetchCommentCount = ({ postId }) => {
                     throw new Error('Token not found');
                 }
 
-                const response = await axios.get(`http://localhost:8080/api/comments/count/${postId}`, {
+                const response = await axios.get(`http://localhost:8080/api/comments/comment/count/${postId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -33,8 +33,8 @@ const FetchCommentCount = ({ postId }) => {
 
     return (
         <div>
-            {error && <p>{error}</p>}
-             {commentCount !== null ? commentCount : 'Loading...'}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {commentCount !== null ? <p>{commentCount}</p> : <p>Loading...</p>}
         </div>
     );
 };

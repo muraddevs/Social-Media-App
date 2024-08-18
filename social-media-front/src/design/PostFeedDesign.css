@@ -1,4 +1,7 @@
 /* Container for the bottom bar and form */
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+
 .bar-container {
     position: fixed;
     bottom: 0;
@@ -239,6 +242,18 @@
     align-items: center;
     gap: 5px;
     flex-direction: row;
+    max-height: 21px;
 }
+.page-header{
+    position: fixed;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 30px;
+    flex-direction: row;
+    height: 80px;
+    border-radius: 0 0 10px 10px;
+}
+
 
 

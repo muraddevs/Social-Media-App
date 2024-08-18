@@ -10,6 +10,7 @@ import FollowButton from './FollowButton';
 import { useNavigate } from 'react-router-dom';
 import RenderPFP from "./RenderPFP";
 import FetchCommentCount from "./FetchCommentCount";
+import { Image, Popconfirm, message, Empty } from "antd";
 
 
 const PostFeed = () => {
@@ -20,7 +21,6 @@ const PostFeed = () => {
     const [userName, setUserName] = useState(null);
     const [commentsVisible, setCommentsVisible] = useState({});
     const [userProfilePictureUrl, setUserProfilePictureUrl] = useState(null);
-
 
     const navigate = useNavigate();
 
@@ -118,7 +118,7 @@ const PostFeed = () => {
             console.log('Decoded userId from token:', userIdFromToken); // Log userId
             setUserId(userIdFromToken);
             setUserName(userNameFromToken);
-            fetchUserProfilePicture(userIdFromToken);
+            await fetchUserProfilePicture(userIdFromToken);
             if (Array.isArray(response.data)) {
                 const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -214,7 +214,7 @@ const PostFeed = () => {
         } else if (postDate > new Date(new Date().setDate(new Date().getDate() - 7))) {
             return `Posted ${formatDistanceToNow(postDate, { addSuffix: true })}`;
         } else {
-            return `Posted on ${format(postDate, 'd MMMM yyyy')} at ${format(postDate, 'h:mm a')}`;
+            return `Posted on ${format(postDate, 'd MMMM yyyy')} `;
         }
     };
 
@@ -236,6 +236,8 @@ const PostFeed = () => {
                         height: 400,
                         objectFit: 'cover',
                         margin: '10px',
+                        border: '1px solid rgba(0, 0, 0, 0.2)',
+                        borderRadius: 10
                     }}
                 />
             ));
@@ -319,8 +321,7 @@ const PostFeed = () => {
             await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-
-            // Refetch posts to update UI
+            message.success('Successfully Deleted Post');
             fetchPosts();
         } catch (error) {
             console.error('Error deleting post:', error);
@@ -338,16 +339,24 @@ const PostFeed = () => {
 
     return (
         <div className="post-feed-container">
-            <h2>Post Feed</h2>
-            <div onClick={navigateToYourProfile}>
-                <RenderPFP profilePictureUrl={userProfilePictureUrl} width={80} height={80} />
+            <div className="page-header"
+                 onClick={navigateToYourProfile}>
+                {/*<h2>Post Feed</h2>*/}
+                <div>
+                    <RenderPFP profilePictureUrl={userProfilePictureUrl} width={50} height={50} />
+                </div>
+
+                <h1
+                style={{
+                    fontSize: 25,
+                }}>
+                    {userName}</h1>
+                {error && <p className="error-message">{error}</p>}
             </div>
-            <h1>{userName}</h1>
-            {error && <p className="error-message">{error}</p>}
 
             <div className="post-feed">
                 {posts.length === 0 ? (
-                    <p>No posts found.</p>
+                    <Empty description="No posts found." />
                 ) : (
                     posts.map(post => (
                         <div className="post-feed-card" key={post.id} style={{marginBottom: '20px'}}>
@@ -395,9 +404,14 @@ const PostFeed = () => {
                                             <CommentOutlined/> <FetchCommentCount postId={post.id} />
                                         </button>
                                         {userId === post.userId && (
-                                            <button onClick={() => handleDeletePost(post.id)} className="delete-button">
-                                                Delete Post
-                                            </button>
+                                            <Popconfirm
+                                                title="Are you sure you want to delete this post?"
+                                                onConfirm={() => handleDeletePost(post.id)}
+                                                okText="Yes"
+                                                cancelText="No"
+                                            >
+                                                <button className="delete-button">Delete Post</button>
+                                            </Popconfirm>
                                         )}
                                     </div>
 

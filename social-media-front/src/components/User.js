@@ -7,6 +7,8 @@ import CommentList from './CommentList';
 import ProfilePicUpload from './ProfilePicUpload';
 import { jwtDecode } from 'jwt-decode';
 import RenderPFP from "./RenderPFP"; // Correct import
+import '../design/UserDesign.css';
+import { LikeOutlined, DislikeOutlined, CommentOutlined } from '@ant-design/icons';
 
 const User = () => {
     const { username } = useParams();
@@ -230,35 +232,52 @@ const User = () => {
 
     return (
         <div className="user-profile-container">
-            <RenderPFP profilePictureUrl={userDetails.profilePictureUrl} width={150} height={150} />
-            <h1>{userDetails.userName}</h1>
-            {userDetails.id === userId && <ProfilePicUpload onProfilePictureUploaded={fetchUserDetails} />}
-            <p>Posts: {userDetails.posts.length}</p>
-            <p>Followers: {followerCount}</p>
-            <p>Following: {followingCount}</p>
-            <FollowButton userIdToFollow={userDetails.id} />
-            <h2>Posts</h2>
-            <div className="user-posts">
-                {userDetails.posts.map(post => (
-                    <div key={post.id} className="user-post">
-                        <p>{post.description}</p>
-                        {post.images && post.images.map((image, index) => (
-                            <div key={index}>
-                                {renderImage(image)} {/* Render each post image */}
-                            </div>
-                        ))}
-                        <button onClick={() => handleUpvote(post.id)}>Like</button>
-                        <span>{post.likeCount} Likes</span>
-                        <button onClick={() => handleDownvote(post.id)}>Dislike</button>
-                        <span>{post.dislikeCount} Dislikes</span>
-                        <button onClick={() => toggleComments(post.id)}>
-                            {visibleComments[post.id] ? 'Hide Comments' : 'Show Comments'}
-                        </button>
-                        {visibleComments[post.id] && (
-                            <CommentList postId={post.id} />
-                        )}
+            <div className="user-profile-header">
+                <RenderPFP profilePictureUrl={userDetails.profilePictureUrl} width={150} height={150} />
+                <div className="user-profile-info">
+                    <h1 className="user-profile-username">{userDetails.userName}</h1>
+                    {userDetails.id === userId && <ProfilePicUpload onProfilePictureUploaded={fetchUserDetails} />}
+                    <div className="user-stats">
+                        <p className="user-posts-count">Posts: {userDetails.posts.length}</p>
+                        <p className="user-followers-count">Followers: {followerCount}</p>
+                        <p className="user-following-count">Following: {followingCount}</p>
                     </div>
-                ))}
+                    <FollowButton userIdToFollow={userDetails.id} />
+                </div>
+            </div>
+            <div className="user-posts-section">
+                <h2 className="user-posts-header">Posts</h2>
+                <div className="user-posts-list">
+                    {userDetails.posts.map(post => (
+                        <div key={post.id} className="user-post-item">
+                            <RenderPFP profilePictureUrl={userDetails.profilePictureUrl} width={50} height={50} />
+                            <h2>{userDetails.userName}</h2>
+                            <p className="user-post-description">{post.description}</p>
+                            {post.images && post.images.length > 0 && (
+                                <div className="user-post-images">
+                                    {post.images.map((image, index) => (
+                                        <div key={index} className="user-post-image">
+                                            {renderImage(image)}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="user-post-actions">
+                                <button className="user-post-like" onClick={() => handleUpvote(post.id)}><LikeOutlined/></button>
+                                <span className="user-post-like-count">{post.likeCount} </span>
+                                <button className="user-post-dislike" onClick={() => handleDownvote(post.id)}><DislikeOutlined/></button>
+                                <span className="user-post-dislike-count">{post.dislikeCount} </span>
+                                <button className="user-post-comments-toggle" onClick={() => toggleComments(post.id)}>
+                                     <CommentOutlined />
+                                </button>
+                                {visibleComments[post.id] && (
+                                    <CommentList postId={post.id} />
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

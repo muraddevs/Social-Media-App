@@ -1,0 +1,107 @@
+.user-profile-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.user-profile-info {
+    margin-left: 20px;
+}
+
+.user-profile-username {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.user-stats {
+    margin: 10px 0;
+}
+
+.user-posts-count, .user-followers-count, .user-following-count {
+    margin: 5px 0;
+}
+
+.user-posts-section {
+    margin-top: 20px;
+}
+
+.user-posts-header {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.user-posts-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-post-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #fff;
+}
+
+.user-post-description {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.user-post-images {
+    display: flex;
+    flex-wrap: nowrap; /* Prevent wrapping, keep images in a single row */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    margin-bottom: 10px;
+    padding: 10px 0; /* Optional: add padding to avoid images sticking to edges */
+    border-radius: 15px;
+}
+
+.user-post-image {
+    flex: 0 0 auto; /* Prevent images from shrinking and ensure they maintain their width */
+    margin-right: 10px; /* Space between images */
+}
+
+.user-post-image img {
+    display: block; /* Remove extra space below images */
+    max-width: 100%; /* Ensure the image fits within the container */
+    height: auto; /* Maintain aspect ratio */
+    object-fit: cover;
+    border-radius: 15px;
+    margin-right: 10px;/* Cover the container while preserving aspect ratio */
+}
+
+
+.user-post-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-post-like, .user-post-dislike, .user-post-comments-toggle {
+    background-color: #ffffff;
+    color: #000000;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.user-post-like-count, .user-post-dislike-count {
+    margin: 0 10px;
+}
+
+.user-error, .user-loading {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #f00;
+}

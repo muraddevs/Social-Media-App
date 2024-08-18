@@ -11,18 +11,6 @@ import Cookies from 'js-cookie';
 const PostItem = ({ post, userId, fetchPosts, onDeletePost }) => {
     const [commentsVisible, setCommentsVisible] = React.useState(false);
 
-    const formatDate = (dateString) => {
-        const postDate = parseISO(dateString);
-        if (isToday(postDate)) {
-            return `Posted today at ${format(postDate, 'h:mm a')}`;
-        } else if (isYesterday(postDate)) {
-            return `Posted yesterday at ${format(postDate, 'h:mm a')}`;
-        } else if (postDate > new Date(new Date().setDate(new Date().getDate() - 7))) {
-            return `Posted ${formatDistanceToNow(postDate, { addSuffix: true })}`;
-        } else {
-            return `Posted on ${format(postDate, 'd MMMM yyyy')} at ${format(postDate, 'h:mm a')}`;
-        }
-    };
 
     const renderImage = (imageData) => {
         if (imageData) {
